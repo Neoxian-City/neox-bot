@@ -1,0 +1,17 @@
+{
+  "name": "neox-bot",
+  "version": "1.0.0",
+  "description": "A bot for Neoxian City.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Balasubramanian Srinivasan",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^11.4.2",
+    "express": "^4.16.4",
+    "moment": "^2.24.0",
+    "steem": "^0.7.4"
+  }
+}
