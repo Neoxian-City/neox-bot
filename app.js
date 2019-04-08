@@ -53,12 +53,11 @@ function checkPosts(msg) {
     let isPostValid = !!url[0].match(
         /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/g
     );
-    console.log(isPostValid);
+    //console.log(isPostValid);
 
     var postValue = url[0];
     var postAuthor = postValue.split("@")[1].split("/")[0];
-    //var weightPercentage = 10000;
-    postLink = url[0].split('@')[1].split('/')[1];
+    postLink = url[0].split('@')[1].split('/')[1].split('?')[0];
 
 
     if (isPostValid === true) {
@@ -75,11 +74,12 @@ function checkPosts(msg) {
                 const diffDuration = moment.duration(diff);
 
                 // display
-                console.log("Days:", diffDuration.days());
-                console.log("Hours:", diffDuration.hours());
-                console.log("Minutes:", diffDuration.minutes());
+                //console.log("Days:", diffDuration.days());
+                //console.log("Hours:", diffDuration.hours());
+                //console.log("Minutes:", diffDuration.minutes());
 
                 var message = `This post was created ${diffDuration.days()} days, ${diffDuration.hours()} hours, ${diffDuration.minutes()} mins ago. (${moment(date).format('MMMM Do YYYY, h:mm:ss a')})`;
+                console.log(message);
                 msg.reply(message);
 
             }).catch(function (e) {
