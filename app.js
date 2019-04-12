@@ -2,12 +2,17 @@ const Discord = require("discord.js");
 const express = require('express');
 const bodyParser = require('body-parser');
 const steem = require("steem");
+var wlsjs = require('@whaleshares/wlsjs');
 var moment = require('moment');
 const config = require("./config");
+const package = require("./package.json");
 const bot = new Discord.Client({
     disableEveryone: true
 });
 
+wlsjs.api.setOptions({
+    url: 'https://pubrpc.whaleshares.io/'
+});
 
 bot.login(config.token);
 
@@ -25,6 +30,7 @@ bot.on("ready", async () => {
     try {
         let link = await bot.generateInvite(["ADMINISTRATOR"]);
         console.log(link);
+
     } catch (e) {
         console.log(e.stack);
     }
@@ -35,8 +41,13 @@ bot.on("message", async msg => {
     if (msg.author.bot) return;
     if (msg.channel.type === "dm") return;
 
-    if (msg.channel.name === "post-promotion") {
+    if (msg.channel.name === "post-promotion" || msg.channel.name === "hunts" || msg.channel.name === "dragon-posts" || msg.channel.name === "whaleshares-post-promotion" || msg.channel.name === "giveaway-post-candidates") {
         checkPosts(msg);
+    }
+    if (msg.channel.name === "play-with-bots") {
+        if(msg.content.indexOf('$neox') === 0){
+            msg.reply(`Hi I'm the Neox Bot version ${package.version}.`);
+        }
     }
     return;
 
@@ -61,39 +72,91 @@ function checkPosts(msg) {
 
 
     if (isPostValid === true) {
-        getPostDetails(postAuthor, postLink)
-            .then(function (date) {
+        if (msg.channel.name === "post-promotion" || msg.channel.name === "hunts" || msg.channel.name === "dragon-posts" || msg.channel.name === "giveaway-post-candidates") {
 
-                const now = moment();
-                const created = moment(date);
+            getSteemPostDetails(postAuthor, postLink)
+                .then(function (date) {
 
-                // get the difference between the moments
-                const diff = now.diff(created);
+                    const now = moment();
+                    const created = moment(date);
+                    // get the difference between the moments
+                    const diff = now.diff(created);
 
-                //express as a duration
-                const diffDuration = moment.duration(diff);
+                    console.log(moment(msg.createdTimestamp));
 
-                // display
-                //console.log("Days:", diffDuration.days());
-                //console.log("Hours:", diffDuration.hours());
-                //console.log("Minutes:", diffDuration.minutes());
+                    //express as a duration
+                    const diffDuration = moment.duration(diff);
 
-                var message = `This post was created ${diffDuration.days()} days, ${diffDuration.hours()} hours, ${diffDuration.minutes()} mins ago. (${moment(date).format('MMMM Do YYYY, h:mm:ss a')})`;
-                console.log(message);
-                msg.reply(message);
+                    // display
+                    //console.log("Days:", diffDuration.days());
+                    //console.log("Hours:", diffDuration.hours());
+                    //console.log("Minutes:", diffDuration.minutes());
 
-            }).catch(function (e) {
-                console.log(e);
-            })
+                    var message = `This post was created ${diffDuration.days()} days, ${diffDuration.hours()} hours, ${diffDuration.minutes()} mins ago. (${moment(date).format('MMMM Do YYYY, h:mm:ss a')})`;
+                    console.log(message);
+                    msg.reply(message);
+
+                }).catch(function (e) {
+                    console.log(e);
+                })
+
+        }
+        if (msg.channel.name === "whaleshares-post-promotion") {
+
+            getWlsPostDetails(postAuthor, postLink)
+                .then(function (date) {
+
+                    const now = moment();
+                    console.log(now);
+                    const created = moment(date);
+
+                    // get the difference between the moments
+                    const diff = now.diff(created);
+
+                    //express as a duration
+                    const diffDuration = moment.duration(diff);
+
+                    // display
+                    //console.log("Days:", diffDuration.days());
+                    //console.log("Hours:", diffDuration.hours());
+                    //console.log("Minutes:", diffDuration.minutes());
+
+                    var message = `This post was created ${diffDuration.days()} days, ${diffDuration.hours()} hours, ${diffDuration.minutes()} mins ago. (${moment(date).format('MMMM Do YYYY, h:mm:ss a')})`;
+                    console.log(message);
+                    msg.reply(message);
+
+                }).catch(function (e) {
+                    console.log(e);
+                })
+
+        }
+
     } else {
         message.channel.send('The post link you have entered is invalid. Please share only valid links in this channel.');
         return null;
     }
 }
 
-function getPostDetails(postAuthor, postLink) {
+function getSteemPostDetails(postAuthor, postLink) {
     return new Promise(function (yes, no) {
         steem.api.getContent(postAuthor, postLink, (err, result) => {
+            if (err) {
+                console.log(err);
+                no(err);
+            } else
+            if (result) {
+
+                yes(result.created);
+            }
+
+
+        });
+    });
+}
+
+function getWlsPostDetails(postAuthor, postLink) {
+    return new Promise(function (yes, no) {
+        wlsjs.api.getContent(postAuthor, postLink, (err, result) => {
             if (err) {
                 console.log(err);
                 no(err);

@@ -1,6 +1,6 @@
 {
   "name": "neox-bot",
-  "version": "1.0.0",
+  "version": "v1.1.0",
   "description": "A bot for Neoxian City.",
   "main": "app.js",
   "scripts": {
@@ -9,6 +9,7 @@
   "author": "Balasubramanian Srinivasan",
   "license": "ISC",
   "dependencies": {
+    "@whaleshares/wlsjs": "^0.1.4",
     "discord.js": "^11.4.2",
     "express": "^4.16.4",
     "moment": "^2.24.0",
