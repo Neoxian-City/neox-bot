@@ -1,3 +1,4 @@
 {
-    "token" : "Enter your discord bot token here"
+    "token" : "Enter your discord bot token here",
+    "database": "mongodb://localhost/neox"
 }
