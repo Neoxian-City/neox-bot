@@ -251,13 +251,13 @@ bot.on("message", async msg => {
 
                         if (msg.content.indexOf('cancel') == 0) {
 
-                            Giveaway.deleteOne({ "_id": data.id }, (err, data) => {
+                            Giveaway.updateOne({ "_id": data.id }, {status: "deleted" }, (err, data) => {
 
                                 if (err) {
                                     console.log(err);
                                 }
                                 else {
-                                    msg.channel.send(`Previous giveaway has been successfully deleted. You can now start a new giveaway with the command ` + '`' + `$neox gcreate` + '`' + `.`);
+                                    msg.channel.send(`Previous giveaway has been successfully marked as deleted. You can now start a new giveaway with the command ` + '`' + `$neox gcreate` + '`' + `.`);
                                 }
 
                             });

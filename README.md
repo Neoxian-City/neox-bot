@@ -11,7 +11,7 @@ A discord bot for the Neoxian City.
 * Mongo DB
 
 ### Version
-1.0.0
+v1.2.0
 
 ### Installation
 
