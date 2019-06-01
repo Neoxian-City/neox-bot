@@ -13,7 +13,7 @@ A discord bot for the Neoxian City. Read the below post for more details.
 * Mongo DB
 
 ### Current Bot version
-v1.2.1
+v1.3.0
 
 ### Installation
 
