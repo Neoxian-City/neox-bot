@@ -54,7 +54,7 @@ bot.on("message", async msg => {
             if (msg.content.indexOf(':tada: Congratulations') === 0) return;
             if (msg.content.indexOf(':tada: Giveaway') === 0) return;
 
-            if(msg.embeds.length === 0) return;
+            if (msg.embeds.length === 0) return;
 
             if (msg.embeds[0].title == ':tada: Neoxian City Giveaway :tada:') {
 
@@ -225,10 +225,23 @@ bot.on("message", async msg => {
             checkPosts(msg);
         }
         if (msg.channel.name === "play-with-bots") {
-            //console.log(msg);
             if (msg.content.indexOf('$neox') === 0) {
                 msg.reply(`Hi I'm the Neox Bot version ${package.version}.`);
                 //msg.react('🎉');
+            }
+            if (msg.content.indexOf('$random') === 0) {
+                var rnd = msg.content.split(" ");
+                var min = rnd[1];
+                var max = rnd[3];
+
+                if (isNaN(min) || isNaN(max)) {
+                    msg.reply(`Please enter a valid number range to find a random number. ` + '`' + `$random 100 and 250` + '`' + `.`);
+                    return;
+                }
+                else {
+                    var rndNumber = getRndInteger(min, max);                    
+                    msg.reply(`Hey, I found ${rndNumber} as the random number.`);
+                }
             }
         }
 
@@ -242,7 +255,6 @@ bot.on("message", async msg => {
                     }
 
                     if (data) {
-                        //console.log(data);
                         if (msg.content.indexOf('$neox gcreate') == 0) {
 
                             msg.channel.send(`You have already initiated a giveaway. You cannot initiate one more in parallel. If you would like to cancel the current giveaway, reply with a command  ` + '`' + `cancel` + '`' + ``);
@@ -251,7 +263,7 @@ bot.on("message", async msg => {
 
                         if (msg.content.indexOf('cancel') == 0) {
 
-                            Giveaway.updateOne({ "_id": data.id }, {status: "deleted" }, (err, data) => {
+                            Giveaway.updateOne({ "_id": data.id }, { status: "deleted" }, (err, data) => {
 
                                 if (err) {
                                     console.log(err);
@@ -287,16 +299,10 @@ bot.on("message", async msg => {
                                     msg.channel.send(`This is not a valid channel. In order to select a channel, please enter ` + '`' + `#` + '`' + ` followed by the channel name and choose the channel.`);
                                     return;
 
-                                }
-
-
-
-                                //data.channel = msg.content;
-                                //console.log(giveaway);                            
+                                }                         
 
                             }
 
-                            console.log(`duration: ${data.duration}`);
 
                             if (data.duration == null) {
 
@@ -362,7 +368,7 @@ bot.on("message", async msg => {
                                                 console.log(err);
                                             }
                                             else {
-                                                //console.log(value);
+                                                
                                                 msg.channel.send(`Done! The giveaway for ` + '`' + `${msg.content}` + '`' + ` is starting in ${value.channel}!`);
                                                 var ch = value.channel.replace(/[^0-9\.]/g, '');
                                                 var gift = ":gift: "
@@ -410,8 +416,7 @@ bot.on("message", async msg => {
 
 
                     } else {
-                        if (msg.content.indexOf('$neox gcreate') == 0) {
-                            console.log('no data');
+                        if (msg.content.indexOf('$neox gcreate') == 0) {                            
                             var giveaway = new Giveaway({
                                 initiatorID: msg.author.id,
                                 initiatorUsername: msg.author.username,
@@ -609,4 +614,10 @@ function timeRemaining(endTime) {
         return value;
     }
 
+}
+
+function getRndInteger(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
