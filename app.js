@@ -485,15 +485,29 @@ function checkPosts(msg) {
             getSteemPostDetails(postAuthor, postLink)
                 .then(function (date) {
 
-                    const now = moment();
-                    const created = moment(date);
+                    const now = moment.utc();
+                    const created = moment.utc(date);
                     // get the difference between the moments
                     const diff = now.diff(created);
 
                     console.log(moment(msg.createdTimestamp));
 
                     //express as a duration
-                    const diffDuration = moment.duration(diff);
+                    const diffDuration = moment.duration(diff);                   
+
+                    if (Math.round(diffDuration.asSeconds()) <= 900) {
+
+                        msg.reply(`The post is less than 15 minutes old. The post has been deleted. Please read the guidelines.`)
+                        msg.delete();
+                        return;
+                        
+                    }
+
+                    if (Math.round(diffDuration.asSeconds()) >= 432000) {
+                        msg.reply(`The post is more than 5 days old. The post has been deleted. Please read the guidelines.`)
+                        msg.delete();
+                        return;
+                    }
 
                     var message = `This post was created ${diffDuration.days()} days, ${diffDuration.hours()} hours, ${diffDuration.minutes()} mins ago. (${moment(date).format('MMMM Do YYYY, h:mm:ss a')})`;
                     console.log(message);
@@ -509,15 +523,28 @@ function checkPosts(msg) {
             getWlsPostDetails(postAuthor, postLink)
                 .then(function (date) {
 
-                    const now = moment();
-                    console.log(now);
-                    const created = moment(date);
+                    const now = moment.utc();
+                    const created = moment.utc(date);
 
                     // get the difference between the moments
                     const diff = now.diff(created);
 
                     //express as a duration
                     const diffDuration = moment.duration(diff);
+
+                    if (Math.round(diffDuration.asSeconds()) <= 900) {
+
+                        msg.reply(`The post is less than 15 minutes old. The post has been deleted. Please read the guidelines.`)
+                        msg.delete();
+                        return;
+                        
+                    }
+
+                    if (Math.round(diffDuration.asSeconds()) >= 432000) {
+                        msg.reply(`The post is more than 5 days old. The post has been deleted. Please read the guidelines.`)
+                        msg.delete();
+                        return;
+                    }
 
                     var message = `This post was created ${diffDuration.days()} days, ${diffDuration.hours()} hours, ${diffDuration.minutes()} mins ago. (${moment(date).format('MMMM Do YYYY, h:mm:ss a')})`;
                     console.log(message);
@@ -582,7 +609,7 @@ function setIntervalX(callback, delay, repetitions) {
 }
 
 function timeRemaining(endTime) {
-    var now = moment();
+    var now = moment.utc();
     var created = moment(endTime);
     // get the difference between the moments
     var diff = now.diff(created);
