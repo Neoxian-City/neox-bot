@@ -1,4 +1,6 @@
 {
     "token" : "Enter your discord bot token here",
-    "database": "mongodb://localhost/neox"
+    "database": "mongodb://localhost/neox",
+    "steemUI": "steempeak.com",
+    "wlsUI": "whaleshares.com"
 }

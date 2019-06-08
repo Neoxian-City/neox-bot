@@ -239,7 +239,7 @@ bot.on("message", async msg => {
                     return;
                 }
                 else {
-                    var rndNumber = getRndInteger(min, max);                    
+                    var rndNumber = getRndInteger(min, max);
                     msg.reply(`Hey, I found ${rndNumber} as the random number.`);
                 }
             }
@@ -299,7 +299,7 @@ bot.on("message", async msg => {
                                     msg.channel.send(`This is not a valid channel. In order to select a channel, please enter ` + '`' + `#` + '`' + ` followed by the channel name and choose the channel.`);
                                     return;
 
-                                }                         
+                                }
 
                             }
 
@@ -368,7 +368,7 @@ bot.on("message", async msg => {
                                                 console.log(err);
                                             }
                                             else {
-                                                
+
                                                 msg.channel.send(`Done! The giveaway for ` + '`' + `${msg.content}` + '`' + ` is starting in ${value.channel}!`);
                                                 var ch = value.channel.replace(/[^0-9\.]/g, '');
                                                 var gift = ":gift: "
@@ -416,7 +416,7 @@ bot.on("message", async msg => {
 
 
                     } else {
-                        if (msg.content.indexOf('$neox gcreate') == 0) {                            
+                        if (msg.content.indexOf('$neox gcreate') == 0) {
                             var giveaway = new Giveaway({
                                 initiatorID: msg.author.id,
                                 initiatorUsername: msg.author.username,
@@ -480,10 +480,17 @@ function checkPosts(msg) {
 
 
     if (isPostValid === true) {
-        if (msg.channel.name === "post-promotion" || msg.channel.name === "hunts" || msg.channel.name === "dragon-posts" || msg.channel.name === "giveaway-post-candidates") {
+        if (msg.channel.name === "post-promotion" || msg.channel.name === "dragon-posts" || msg.channel.name === "giveaway-post-candidates") {
 
             getSteemPostDetails(postAuthor, postLink)
                 .then(function (date) {
+
+                    if (date == "1970-01-01T00:00:00") {
+
+                        msg.reply("The post link is invalid.");
+                        return;
+
+                    }
 
                     const now = moment.utc();
                     const created = moment.utc(date);
@@ -493,25 +500,38 @@ function checkPosts(msg) {
                     console.log(moment(msg.createdTimestamp));
 
                     //express as a duration
-                    const diffDuration = moment.duration(diff);                   
+                    const diffDuration = moment.duration(diff);
 
                     if (Math.round(diffDuration.asSeconds()) <= 900) {
 
-                        msg.reply(`The post is less than 15 minutes old. The post has been deleted. Please read the guidelines.`)
+                        msg.reply(`The post is less than 15 minutes old. The post link has been deleted. Please read the guidelines.`)
                         msg.delete();
                         return;
-                        
+
                     }
 
                     if (Math.round(diffDuration.asSeconds()) >= 432000) {
-                        msg.reply(`The post is more than 5 days old. The post has been deleted. Please read the guidelines.`)
+                        msg.reply(`The post is more than 5 days old. The post link has been deleted. Please read the guidelines.`)
                         msg.delete();
                         return;
                     }
 
-                    var message = `This post was created ${diffDuration.days()} days, ${diffDuration.hours()} hours, ${diffDuration.minutes()} mins ago. (${moment(date).format('MMMM Do YYYY, h:mm:ss a')})`;
-                    console.log(message);
-                    msg.reply(message);
+                    var message = `${moment.utc(date).format('MMMM Do YYYY, h:mm:ss a')} \n This post was created ${diffDuration.days()} day(s), ${diffDuration.hours()} hour(s), ${diffDuration.minutes()} min(s) ago.`;
+                    msg.channel.send({
+                        "embed": {
+                            "color": 2146335,
+                            "fields": [
+                                {
+                                    "name": "Date Created",
+                                    "value": message
+                                },
+                                {
+                                    "name": "Post Link",
+                                    "value": `https://${config.steemUI}/@${postAuthor}/${postLink}`
+                                }
+                            ]
+                        }
+                    });
 
                 }).catch(function (e) {
                     console.log(e);
@@ -522,6 +542,13 @@ function checkPosts(msg) {
 
             getWlsPostDetails(postAuthor, postLink)
                 .then(function (date) {
+
+                    if (date == "1970-01-01T00:00:00") {
+
+                        msg.reply("The post link is invalid.");
+                        return;
+
+                    }
 
                     const now = moment.utc();
                     const created = moment.utc(date);
@@ -534,21 +561,34 @@ function checkPosts(msg) {
 
                     if (Math.round(diffDuration.asSeconds()) <= 900) {
 
-                        msg.reply(`The post is less than 15 minutes old. The post has been deleted. Please read the guidelines.`)
+                        msg.reply(`The post is less than 15 minutes old. The post link has been deleted. Please read the guidelines.`)
                         msg.delete();
                         return;
-                        
+
                     }
 
                     if (Math.round(diffDuration.asSeconds()) >= 432000) {
-                        msg.reply(`The post is more than 5 days old. The post has been deleted. Please read the guidelines.`)
+                        msg.reply(`The post is more than 5 days old. The post link has been deleted. Please read the guidelines.`)
                         msg.delete();
                         return;
                     }
 
-                    var message = `This post was created ${diffDuration.days()} days, ${diffDuration.hours()} hours, ${diffDuration.minutes()} mins ago. (${moment(date).format('MMMM Do YYYY, h:mm:ss a')})`;
-                    console.log(message);
-                    msg.reply(message);
+                    var message = `${moment.utc(date).format('MMMM Do YYYY, h:mm:ss a')} \n This post was created ${diffDuration.days()} day(s), ${diffDuration.hours()} hour(s), ${diffDuration.minutes()} min(s) ago.`;
+                    msg.channel.send({
+                        "embed": {
+                            "color": 2146335,
+                            "fields": [
+                                {
+                                    "name": "Date Created",
+                                    "value": message
+                                },
+                                {
+                                    "name": "Post Link",
+                                    "value": `https://${config.wlsUI}/@${postAuthor}/${postLink}`
+                                }
+                            ]
+                        }
+                    });
 
                 }).catch(function (e) {
                     console.log(e);
@@ -557,7 +597,7 @@ function checkPosts(msg) {
         }
 
     } else {
-        message.channel.send('The post link you have entered is invalid. Please share only valid links in this channel.');
+        message.channel.send('The post link is invalid. Please share only valid links in this channel.');
         return null;
     }
 }
@@ -569,7 +609,7 @@ function getSteemPostDetails(postAuthor, postLink) {
                 console.log(err);
                 no(err);
             } else
-                if (result) {
+                if (result) {                    
 
                     yes(result.created);
                 }
