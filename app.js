@@ -85,12 +85,16 @@ bot.on("message", async msg => {
                                         },
                                         "fields": [
                                             {
+                                                "name": "Initiator",
+                                                "value": msg.embeds[0].fields[0].value
+                                            },
+                                            {
                                                 "name": "React with :tada: to enter the Giveaway",
                                                 "value": `Time Remaining: ${timeRemaining(data.endTime)}`
                                             },
                                             {
-                                                "name": msg.embeds[0].fields[1].name,
-                                                "value": msg.embeds[0].fields[1].value
+                                                "name": msg.embeds[0].fields[2].name,
+                                                "value": msg.embeds[0].fields[2].value
                                             }
                                         ]
                                     }
@@ -127,6 +131,10 @@ bot.on("message", async msg => {
                                                     "text": msg.embeds[0].footer.text
                                                 },
                                                 "fields": [
+                                                    {
+                                                        "name": "Initiator",
+                                                        "value": msg.embeds[0].fields[0].value
+                                                    },
                                                     {
                                                         "name": ":tada: Giveaway has ended",
                                                         "value": `Could not determine a winner!`
@@ -179,12 +187,16 @@ bot.on("message", async msg => {
                                             },
                                             "fields": [
                                                 {
+                                                    "name": "Initiator",
+                                                    "value": msg.embeds[0].fields[0].value
+                                                },
+                                                {
                                                     "name": ":tada: Giveaway has ended",
                                                     "value": `Congratulations ${winnersArray}`
                                                 },
                                                 {
-                                                    "name": msg.embeds[0].fields[1].name,
-                                                    "value": msg.embeds[0].fields[1].value
+                                                    "name": msg.embeds[0].fields[2].name,
+                                                    "value": msg.embeds[0].fields[2].value
                                                 }
                                             ]
                                         }
@@ -229,6 +241,28 @@ bot.on("message", async msg => {
                 msg.reply(`Hi I'm the Neox Bot version ${package.version}.`);
                 //msg.react('🎉');
             }
+
+            if (msg.content.indexOf('$gtop') === 0) {
+
+                getTopInitiators()
+                    .then((result) => {
+
+                        msg.channel.send({
+                            "embed": {
+                                "title": ":trophy: Top Giveaway Initiators",
+                                "description": result
+                            }
+                        });
+
+
+                    }).catch(function (e) {
+                        console.log(e);
+                    })
+
+
+
+            }
+
             if (msg.content.indexOf('$random') === 0) {
                 var rnd = msg.content.split(" ");
                 var min = rnd[1];
@@ -385,6 +419,10 @@ bot.on("message", async msg => {
                                                             "text": footer
                                                         },
                                                         "fields": [
+                                                            {
+                                                                "name": "**Initiator**",
+                                                                "value": `<@${value.initiatorID}>`
+                                                            },
                                                             {
                                                                 "name": "React with :tada: to enter the Giveaway",
                                                                 "value": timeRemaining
@@ -609,7 +647,7 @@ function getSteemPostDetails(postAuthor, postLink) {
                 console.log(err);
                 no(err);
             } else
-                if (result) {                    
+                if (result) {
 
                     yes(result.created);
                 }
@@ -634,6 +672,69 @@ function getWlsPostDetails(postAuthor, postLink) {
 
         });
     });
+}
+
+function getTopInitiators() {
+    return new Promise(function (yes, no) {
+        Giveaway.aggregate(
+            [{ $group: { _id: '$initiatorID', count: { $sum: 1 } } },
+            { $sort: { "count": -1 } }
+            ]
+        ).exec((err, result) => {
+
+            if (err) {
+                console.log(err);
+                no(err);
+            } else
+                if (result) {
+
+                    var output = "";
+
+                    if (result.length >= 1) {
+                        output = `:first_place: :one: <@${result[0]._id}> - **${result[0].count}** \n`;
+                    }
+
+                    if (result.length >= 2) {
+                        output = output + `:second_place: :two: <@${result[1]._id}> - **${result[1].count}** \n`;
+                    }
+
+                    if (result.length >= 3) {
+                        output = output + `:third_place: :three: <@${result[2]._id}> - **${result[2].count}** \n`;
+                    }
+
+                    if (result.length >= 4) {
+                        output = output + `:medal: :four: <@${result[3]._id}> - **${result[3].count}** \n`;
+                    }
+
+                    if (result.length >= 5) {
+                        output = output + `:medal: :five: <@${result[4]._id}> - **${result[4].count}** \n`;
+                    }
+
+                    if (result.length >= 6) {
+                        output = output + `:medal: :six: <@${result[5]._id}> - **${result[5].count}** \n`;
+                    }
+
+                    if (result.length >= 7) {
+                        output = output + `:medal: :seven: <@${result[6]._id}> - **${result[6].count}** \n`;
+                    }
+
+                    if (result.length >= 8) {
+                        output = output + `:medal: :eight: <@${result[7]._id}> - **${result[7].count}** \n`;
+                    }
+
+                    if (result.length >= 9) {
+                        output = output + `:medal: :nine: <@${result[8]._id}> - **${result[8].count}** \n`;
+                    }
+
+                    if (result.length >= 10) {
+                        output = output + `:medal: :keycap_ten: <@${result[9]._id}> - **${result[9].count}**`;
+                    }
+
+                    yes(output);
+                }
+
+        })
+    })
 }
 
 function setIntervalX(callback, delay, repetitions) {
