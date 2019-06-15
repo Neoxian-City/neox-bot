@@ -259,8 +259,24 @@ bot.on("message", async msg => {
                         console.log(e);
                     })
 
+            }
+
+            if (msg.content.indexOf('$gwinners') === 0) {
+                
+                getTopWinners()
+                .then((result) => {
+
+                    msg.channel.send({
+                        "embed": {
+                            "title": ":trophy: Top Giveaway Winners",
+                            "description": result
+                        }
+                    });
 
 
+                }).catch(function (e) {
+                    console.log(e);
+                })
             }
 
             if (msg.content.indexOf('$random') === 0) {
@@ -737,6 +753,84 @@ function getTopInitiators() {
     })
 }
 
+function getTopWinners() {
+    return new Promise(function (yes, no) {
+        var winners = [];
+
+        Giveaway.find({}, { winners: 1, _id: 0 })
+            .then((data) => {
+                for (var i = 0; i < data.length; i++) {
+                    //winners.push(data[i].winners.length);
+                    if (data[i].winners.length === 1) {
+                        winners.push(data[i].winners[0])
+                    }
+                    if (data[i].winners.length > 1) {
+                        for (var j = 0; j < data[i].winners.length; j++) {
+                            winners.push(data[i].winners[j])
+                        }
+
+                    }
+                }
+                //console.log(winners);
+                var newArray = compressArray(winners);
+                var sortedArray = newArray.sort(function (a, b) {
+                    return b.count - a.count;
+                });
+                //console.log(sortedArray);
+
+                var output = "";
+
+                if (sortedArray.length >= 1) {
+                    output = `:first_place: :one: ${sortedArray[0].value} - **${sortedArray[0].count}** \n`;
+                }
+
+                if (sortedArray.length >= 2) {
+                    output = output + `:second_place: :two: ${sortedArray[1].value} - **${sortedArray[1].count}** \n`;
+                }
+
+                if (sortedArray.length >= 3) {
+                    output = output + `:third_place: :three: ${sortedArray[2].value} - **${sortedArray[2].count}** \n`;
+                }
+
+                if (sortedArray.length >= 4) {
+                    output = output + `:medal: :four: ${sortedArray[3].value} - **${sortedArray[3].count}** \n`;
+                }
+
+                if (sortedArray.length >= 5) {
+                    output = output + `:medal: :five: ${sortedArray[4].value} - **${sortedArray[4].count}** \n`;
+                }
+
+                if (sortedArray.length >= 6) {
+                    output = output + `:medal: :six: ${sortedArray[5].value} - **${sortedArray[5].count}** \n`;
+                }
+
+                if (sortedArray.length >= 7) {
+                    output = output + `:medal: :seven: ${sortedArray[6].value} - **${sortedArray[6].count}** \n`;
+                }
+
+                if (sortedArray.length >= 8) {
+                    output = output + `:medal: :eight: ${sortedArray[7].value} - **${sortedArray[7].count}** \n`;
+                }
+
+                if (sortedArray.length >= 9) {
+                    output = output + `:medal: :nine: ${sortedArray[8].value} - **${sortedArray[8].count}** \n`;
+                }
+
+                if (sortedArray.length >= 10) {
+                    output = output + `:medal: :keycap_ten: ${sortedArray[9].value} - **${sortedArray[9].count}**`;
+                }
+
+                //console.log(output);
+                yes(output);
+
+            }).catch(function (e) {
+                console.log(e);
+                no(e);
+            })
+    })
+
+}
+
 function setIntervalX(callback, delay, repetitions) {
     var x = 0;
     var intervalID = setInterval(function () {
@@ -789,3 +883,34 @@ function getRndInteger(min, max) {
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
+
+function compressArray(original) {
+
+    var compressed = [];
+    // make a copy of the input array
+    var copy = original.slice(0);
+
+    // first loop goes over every element
+    for (var i = 0; i < original.length; i++) {
+
+        var myCount = 0;
+        // loop over every element in the copy and see if it's the same
+        for (var w = 0; w < copy.length; w++) {
+            if (original[i] == copy[w]) {
+                // increase amount of times duplicate is found
+                myCount++;
+                // sets item to undefined
+                delete copy[w];
+            }
+        }
+
+        if (myCount > 0) {
+            var a = new Object();
+            a.value = original[i];
+            a.count = myCount;
+            compressed.push(a);
+        }
+    }
+
+    return compressed;
+};
