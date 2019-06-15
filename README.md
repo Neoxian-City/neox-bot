@@ -41,6 +41,8 @@ The following commands works only in `#play-with-bots` channel
 ```sh
 $neox
 $random 405 and 670
+$gtop
+$gwinners
 ```
 
 The following commands works only in `#giveaway` channel

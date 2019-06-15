@@ -238,8 +238,15 @@ bot.on("message", async msg => {
         }
         if (msg.channel.name === "play-with-bots") {
             if (msg.content.indexOf('$neox') === 0) {
-                msg.reply(`Hi I'm the Neox Bot version ${package.version}.`);
-                //msg.react('🎉');
+
+                var command = `Please use the following commands to use my features.\n\n ` + '`' + `$neox gcreate` + '`' + ` - Use in #giveaway channel to initiate giveaway.\n\n` + '`' + `$random 405 and 670` + '`' + ` - Use this command to find a random number in #play-with-bots channel.\n\n` + '`' + `$gtop` + '`' + ` - Use this command in #play-with-bots channel to get top 10 giveaway initiators.\n\n` + '`' + `$gwinners` + '`' + ` - Use this command in #play-with-bots channel to get top 10 giveaway winners`
+
+                msg.channel.send({
+                    "embed": {
+                        "title": `Hi, I'm the Neox Bot version ${package.version}.`,
+                        "description": command
+                    }
+                });
             }
 
             if (msg.content.indexOf('$gtop') === 0) {
@@ -262,7 +269,7 @@ bot.on("message", async msg => {
             }
 
             if (msg.content.indexOf('$gwinners') === 0) {
-                
+
                 getTopWinners()
                 .then((result) => {
 
