@@ -2,7 +2,8 @@ var mongoose     = require('mongoose')
 , Schema = mongoose.Schema;
 
 var giveawayNotification = new Schema({
-    user: String
+    user: String,
+    userName: String
 
 },{ versionKey: false});
 

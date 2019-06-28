@@ -60,7 +60,7 @@ bot.on("message", async msg => {
             if (msg.embeds[0].title == ':tada: Neoxian City Giveaway :tada:') {
 
                 var giveawayID = msg.embeds[0].footer.text.split(" ")[1];
-                console.log(` giveawayID: ${giveawayID}`);
+                //console.log(` giveawayID: ${giveawayID}`);
                 await msg.react('🎉');
 
                 Giveaway.findOne(
@@ -110,14 +110,14 @@ bot.on("message", async msg => {
                                 .then(collected => {
 
                                     var winnersArray = [];
-                                    console.log(`giveawayData : ${data}`);
+                                    //console.log(`giveawayData : ${data}`);
                                     //console.log(`Collected ${collected.size} reactions`);
                                     var users = collected.get('🎉').users;
                                     //console.log(users);
                                     var humanUsers = users.filter(u => !u.bot);
                                     //console.log(`Human Array: ${humanUsers.array()}`);
-                                    console.log(`User Length: ${users.array().length}`);
-                                    console.log(`Human Length: ${humanUsers.array().length}`);
+                                    //console.log(`User Length: ${users.array().length}`);
+                                    //console.log(`Human Length: ${humanUsers.array().length}`);
 
                                     if (users.array().length === 1) {
 
@@ -146,7 +146,7 @@ bot.on("message", async msg => {
 
                                         msg.channel.send(`:tada: Giveaway has Ended. A winner could not be determined!`);
 
-                                        console.log(winnersArray);
+                                        //console.log(winnersArray);
                                         Giveaway.updateOne({ _id: data.id }, { winners: winnersArray, status: "completed" }, (err) => {
                                             if (err) {
                                                 console.log(err);
@@ -160,18 +160,18 @@ bot.on("message", async msg => {
 
                                         humanUsers.forEach((user) => {
                                             winnersArray.push(`<@${user.id}>`)
-                                            console.log(`${user.username}`);
+                                            //console.log(`${user.username}`);
                                         })
                                     }
                                     else {
 
                                         var randomWinners = humanUsers.random(data.winnerCount);
-                                        console.log(randomWinners);
+                                        //console.log(randomWinners);
                                         //console.log(humanUsers);
 
                                         randomWinners.forEach((user) => {
                                             winnersArray.push(`<@${user.id}>`)
-                                            console.log(`${user.username}`);
+                                            //console.log(`${user.username}`);
                                         })
 
                                     }
@@ -205,7 +205,7 @@ bot.on("message", async msg => {
 
                                     msg.channel.send(`:tada: Congratulations ${winnersArray}. You have been randomly selected as the winner for the giveaway.`);
 
-                                    console.log(winnersArray);
+                                    //console.log(winnersArray);
                                     Giveaway.updateOne({ _id: data.id }, { winners: winnersArray, status: "completed" }, (err) => {
                                         if (err) {
                                             console.log(err);
@@ -240,7 +240,7 @@ bot.on("message", async msg => {
         if (msg.channel.name === "play-with-bots") {
             if (msg.content.indexOf('$neox') === 0) {
 
-                var command = `Please use the following commands to use my features.\n\n ` + '`' + `$neox gcreate` + '`' + ` - Use in #giveaway channel to initiate giveaway.\n\n` + '`' + `$random 405 and 670` + '`' + ` - Use this command to find a random number in #play-with-bots channel.\n\n` + '`' + `$gtop` + '`' + ` - Use this command in #play-with-bots channel to get top 10 giveaway initiators.\n\n` + '`' + `$gwinners` + '`' + ` - Use this command in #play-with-bots channel to get top 10 giveaway winners.\n\n` + '`' + `$gnotification Start` + '`' + ` - Use this command in #play-with-bots channel to subscribe to giveaway notifications in DM.\n\n` + '`' + `$gnotification Stop` + '`' + ` - Use this command in #play-with-bots channel to stop receiving giveaway notifications in DM`
+                var command = `Please use the following commands to use my features.\n\n ` + '`' + `$neox gcreate` + '`' + ` - Use in #giveaway channel to initiate giveaway.\n\n` + '`' + `$random 405 and 670` + '`' + ` - Use this command to find a random number in #play-with-bots channel.\n\n` + '`' + `$gtop` + '`' + ` - Use this command in #play-with-bots channel to get top 10 giveaway initiators.\n\n` + '`' + `$gwinners` + '`' + ` - Use this command in #play-with-bots channel to get top 10 giveaway winners.\n\n` + '`' + `$gnotification Start` + '`' + ` - Use this command in #play-with-bots channel to start receiving giveaway notifications in DM.\n\n` + '`' + `$gnotification Stop` + '`' + ` - Use this command in #play-with-bots channel to stop receiving giveaway notifications in DM`
 
                 msg.channel.send({
                     "embed": {
@@ -319,7 +319,8 @@ bot.on("message", async msg => {
                         }
 
                         var giveawayNotification = new GiveawayNotification({
-                            user: msg.author.id
+                            user: msg.author.id,
+                            userName: msg.author.username
                         });
                         giveawayNotification.save((err, doc) => {
                             if (!err) {
@@ -444,7 +445,7 @@ bot.on("message", async msg => {
                                     return;
                                 } else {
 
-                                    Giveaway.update({ _id: data.id }, { duration: msg.content }, (err, data) => {
+                                    Giveaway.updateOne({ _id: data.id }, { duration: msg.content }, (err, data) => {
                                         if (err) {
                                             console.log(err);
                                         }
@@ -468,7 +469,7 @@ bot.on("message", async msg => {
                                     return;
                                 } else {
 
-                                    Giveaway.update({ _id: data.id }, { winnerCount: msg.content }, (err, data) => {
+                                    Giveaway.updateOne({ _id: data.id }, { winnerCount: msg.content }, (err, data) => {
                                         if (err) {
                                             console.log(err);
                                         }
@@ -543,6 +544,8 @@ bot.on("message", async msg => {
                                                         for (let i=0; i < val.length; i++) {                                                            
 
                                                             if (msg.guild.roles.get(config.roleID).members.get(val[i].user)) {
+
+                                                                console.log(val[i].userName);
 
                                                                 bot.users.get(val[i].user).send({
                                                                     "embed": {
@@ -676,7 +679,7 @@ function checkPosts(msg) {
                     // get the difference between the moments
                     const diff = now.diff(created);
 
-                    console.log(moment(msg.createdTimestamp));
+                    //console.log(moment(msg.createdTimestamp));
 
                     //express as a duration
                     const diffDuration = moment.duration(diff);
@@ -986,7 +989,7 @@ function timeRemaining(endTime) {
     //console.log("Seconds:", diffDuration.seconds() * -1);
 
     if (diffDuration.minutes() === 0) {
-        console.log(`${seconds} seconds`);
+        //console.log(`${seconds} seconds`);
         value = `${seconds} seconds`;
         return value;
 
@@ -996,7 +999,7 @@ function timeRemaining(endTime) {
         return value;
     }
     else {
-        console.log(minutes + " minutes, " + seconds + " seconds");
+        //console.log(minutes + " minutes, " + seconds + " seconds");
         value = minutes + " minutes, " + seconds + " seconds";
         return value;
     }
