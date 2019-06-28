@@ -7,6 +7,7 @@ var moment = require('moment');
 
 const { mongoose } = require('./db.js');
 const { Giveaway } = require('./models/giveaway')
+const { GiveawayNotification } = require('./models/giveawayNotification')
 const config = require("./config");
 const package = require("./package.json");
 
@@ -271,19 +272,19 @@ bot.on("message", async msg => {
             if (msg.content.indexOf('$gwinners') === 0) {
 
                 getTopWinners()
-                .then((result) => {
+                    .then((result) => {
 
-                    msg.channel.send({
-                        "embed": {
-                            "title": ":trophy: Top Giveaway Winners",
-                            "description": result
-                        }
-                    });
+                        msg.channel.send({
+                            "embed": {
+                                "title": ":trophy: Top Giveaway Winners",
+                                "description": result
+                            }
+                        });
 
 
-                }).catch(function (e) {
-                    console.log(e);
-                })
+                    }).catch(function (e) {
+                        console.log(e);
+                    })
             }
 
             if (msg.content.indexOf('$random') === 0) {
@@ -300,6 +301,100 @@ bot.on("message", async msg => {
                     msg.reply(`Hey, I found ${rndNumber} as the random number.`);
                 }
             }
+
+            if (msg.content.indexOf('$gnotification Start') === 0) {
+
+                GiveawayNotification.findOne(
+                    { user: msg.author.id },
+                    (err, data) => {
+                        if (err) {
+                            console.log(err);
+                            msg.reply(`There was an error in processing this request. Try again and if the problem persists, please contact Administrator`);
+                            return;
+                        }
+
+                        if (data) {
+                            msg.reply(`Notification service is already enabled for you. Use the command ` + '`' + `$gnotification Stop` + '`' + ` to stop receiving notifications.`);
+                            return;
+                        }
+
+                        var giveawayNotification = new GiveawayNotification({
+                            user: msg.author.id
+                        });
+                        giveawayNotification.save((err, doc) => {
+                            if (!err) {
+                                msg.reply(`Congratulations, you have been subscribed to receive notifications on your DM when a :tada: Giveaway :tada: is initiated in the city. Please note the notification will be sent only to the Sharp Citizens of the city.`);
+                                return;
+                            }
+                            else {
+                                console.log('Error in Saving Giveaway: ' + JSON.stringify(err, undefined, 2));
+                                msg.reply(`There was an error in subscribing you to the notification service. Please contact Administrator.`);
+                            }
+                        })
+
+                    }
+                )
+            }
+
+            if (msg.content.indexOf('$gnotification Stop') === 0) {
+
+                GiveawayNotification.findOne(
+                    { user: msg.author.id },
+                    (err, data) => {
+                        if (err) {
+                            console.log(err);
+                            msg.reply(`There was an error in processing this request. Try again and if the problem persists, please contact Administrator`);
+                            return;
+                        }
+
+                        if (data) {
+
+                            GiveawayNotification.deleteOne(
+                                { user: msg.author.id },
+                                (err, result) => {
+                                    if (err) {
+                                        console.log(err);
+                                        msg.reply(`There was an error in removing your subscription to the notification service. Please contact Administrator.`);
+                                        return;
+                                    }
+
+                                    if (result) {
+                                        msg.reply(`Notification service has been disabled for you. Use the command ` + '`' + `$gnotification Start` + '`' + ` to start receiving notifications.`);
+                                        return;
+
+                                    }
+                                }
+                            )
+
+                        }
+
+                    }
+                )
+            }
+
+            // if (msg.content.indexOf('$g') === 0) {
+
+            //     let myRole = msg.guild.roles.find(role => role.name === "Citizen");
+
+            //     console.log(myRole);
+
+            //     console.log(msg.guild.roles.get("593849034783981579").members.get(msg.author.id));
+
+            //     if (msg.guild.roles.get("593849034783981579").members.get(msg.author.id)) {
+
+            //         bot.users.get(msg.author.id).send("Hello, I'm neox Bot");
+            //     }
+
+            //     // if (msg.member.roles.get("593849034783981579")) {
+
+            //     //     bot.users.get(msg.author.id).send("Hello, I'm neox Bot");
+
+            //     // }
+
+            // }
+
+
+
         }
 
         if (msg.channel.name === "giveaway") {
@@ -457,6 +552,50 @@ bot.on("message", async msg => {
                                                         ]
                                                     }
                                                 });
+
+
+                                                GiveawayNotification.find({},(err,val) => {
+                                                    if (err) {
+                                                        console.log(err);
+                                                        return;
+                                                    }
+
+                                                    if (val.length > 0) {
+                                                        for (let i=0; i < val.length; i++) {                                                            
+
+                                                            if (msg.guild.roles.get(config.roleID).members.get(val[i].user)) {
+
+                                                                bot.users.get(val[i].user).send({
+                                                                    "embed": {
+                                                                        "title": ":tada: Neoxian City Giveaway Notification :tada:",
+                                                                        "description": value.prize,
+                                                                        "url": "",
+                                                                        "color": 2146335,
+                                                                        "footer": {
+                                                                            "icon_url": "https://steemitimages.com/p/4qEixipsxSf1jXvCicS49aiaKDfFxASf1eKR39suyU4qmikNaw2FMepusxFTD1TUaJ",
+                                                                            "text": footer
+                                                                        },
+                                                                        "fields": [
+                                                                            {
+                                                                                "name": "**Initiator**",
+                                                                                "value": `<@${value.initiatorID}>`
+                                                                            },
+                                                                            {
+                                                                                "name": "Visit Neoxian City to react with :tada: to enter the Giveaway",
+                                                                                "value": timeRemaining
+                                                                            },
+                                                                            {
+                                                                                "name": `${value.winnerCount} Winners`,
+                                                                                "value": gift.repeat(value.winnerCount)
+                                                                            }
+                                                                        ]
+                                                                    }
+                                                                });                                                                
+                                                            }
+                                                        }
+                                                    }
+                                                });
+
                                                 return;
                                             }
                                         })

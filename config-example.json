@@ -1,5 +1,6 @@
 {
     "token" : "Enter your discord bot token here",
+    "roleID": "593849034783981579",
     "database": "mongodb://localhost/neox",
     "steemUI": "steempeak.com",
     "wlsUI": "whaleshares.com"
