@@ -240,7 +240,7 @@ bot.on("message", async msg => {
         if (msg.channel.name === "play-with-bots") {
             if (msg.content.indexOf('$neox') === 0) {
 
-                var command = `Please use the following commands to use my features.\n\n ` + '`' + `$neox gcreate` + '`' + ` - Use in #giveaway channel to initiate giveaway.\n\n` + '`' + `$random 405 and 670` + '`' + ` - Use this command to find a random number in #play-with-bots channel.\n\n` + '`' + `$gtop` + '`' + ` - Use this command in #play-with-bots channel to get top 10 giveaway initiators.\n\n` + '`' + `$gwinners` + '`' + ` - Use this command in #play-with-bots channel to get top 10 giveaway winners`
+                var command = `Please use the following commands to use my features.\n\n ` + '`' + `$neox gcreate` + '`' + ` - Use in #giveaway channel to initiate giveaway.\n\n` + '`' + `$random 405 and 670` + '`' + ` - Use this command to find a random number in #play-with-bots channel.\n\n` + '`' + `$gtop` + '`' + ` - Use this command in #play-with-bots channel to get top 10 giveaway initiators.\n\n` + '`' + `$gwinners` + '`' + ` - Use this command in #play-with-bots channel to get top 10 giveaway winners.\n\n` + '`' + `$gnotification Start` + '`' + ` - Use this command in #play-with-bots channel to subscribe to giveaway notifications in DM.\n\n` + '`' + `$gnotification Stop` + '`' + ` - Use this command in #play-with-bots channel to stop receiving giveaway notifications in DM`
 
                 msg.channel.send({
                     "embed": {
@@ -371,27 +371,6 @@ bot.on("message", async msg => {
                     }
                 )
             }
-
-            // if (msg.content.indexOf('$g') === 0) {
-
-            //     let myRole = msg.guild.roles.find(role => role.name === "Citizen");
-
-            //     console.log(myRole);
-
-            //     console.log(msg.guild.roles.get("593849034783981579").members.get(msg.author.id));
-
-            //     if (msg.guild.roles.get("593849034783981579").members.get(msg.author.id)) {
-
-            //         bot.users.get(msg.author.id).send("Hello, I'm neox Bot");
-            //     }
-
-            //     // if (msg.member.roles.get("593849034783981579")) {
-
-            //     //     bot.users.get(msg.author.id).send("Hello, I'm neox Bot");
-
-            //     // }
-
-            // }
 
 
 
