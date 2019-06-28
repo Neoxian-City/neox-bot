@@ -13,7 +13,7 @@ A discord bot for the Neoxian City. Read the below post for more details.
 * Mongo DB
 
 ### Current Bot version
-v1.5.0
+v1.6.0
 
 ### Installation
 
@@ -43,6 +43,8 @@ $neox
 $random 405 and 670
 $gtop
 $gwinners
+$gnotification Start
+$gnotification Stop
 ```
 
 The following commands works only in `#giveaway` channel
