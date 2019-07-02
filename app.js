@@ -534,14 +534,14 @@ bot.on("message", async msg => {
                                                 });
 
 
-                                                GiveawayNotification.find({},(err,val) => {
+                                                GiveawayNotification.find({}, (err, val) => {
                                                     if (err) {
                                                         console.log(err);
                                                         return;
                                                     }
 
                                                     if (val.length > 0) {
-                                                        for (let i=0; i < val.length; i++) {                                                            
+                                                        for (let i = 0; i < val.length; i++) {
 
                                                             if (msg.guild.roles.get(config.roleID).members.get(val[i].user)) {
 
@@ -572,7 +572,7 @@ bot.on("message", async msg => {
                                                                             }
                                                                         ]
                                                                     }
-                                                                });                                                                
+                                                                });
                                                             }
                                                         }
                                                     }
@@ -665,7 +665,9 @@ function checkPosts(msg) {
         if (msg.channel.name === "post-promotion" || msg.channel.name === "dragon-posts" || msg.channel.name === "giveaway-post-candidates") {
 
             getSteemPostDetails(postAuthor, postLink)
-                .then(function (date) {
+                .then(function (data) {
+
+                    var date = data.created;
 
                     if (date == "1970-01-01T00:00:00") {
 
@@ -710,6 +712,10 @@ function checkPosts(msg) {
                                 {
                                     "name": "Post Link",
                                     "value": `https://${config.steemUI}/@${postAuthor}/${postLink}`
+                                },
+                                {
+                                    "name": "Tags",
+                                    "value": `${data.tags.join(', ')}`
                                 }
                             ]
                         }
@@ -723,7 +729,7 @@ function checkPosts(msg) {
         if (msg.channel.name === "whaleshares-post-promotion") {
 
             getWlsPostDetails(postAuthor, postLink)
-                .then(function (date) {
+                .then(function (date) {                    
 
                     if (date == "1970-01-01T00:00:00") {
 
@@ -756,7 +762,7 @@ function checkPosts(msg) {
                     }
 
                     var message = `${moment.utc(date).format('MMMM Do YYYY, h:mm:ss a')} \n This post was created ${diffDuration.days()} day(s), ${diffDuration.hours()} hour(s), ${diffDuration.minutes()} min(s) ago.`;
-                    msg.channel.send({
+                    msg.channel.send({                        
                         "embed": {
                             "color": 2146335,
                             "fields": [
@@ -793,7 +799,10 @@ function getSteemPostDetails(postAuthor, postLink) {
             } else
                 if (result) {
 
-                    yes(result.created);
+                    var obj = JSON.parse(result.json_metadata);
+                    var tags = obj.tags;
+
+                    yes({"created": result.created, "tags": tags});
                 }
 
 
