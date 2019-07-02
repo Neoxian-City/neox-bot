@@ -2,7 +2,6 @@ const Discord = require("discord.js");
 const express = require('express');
 const bodyParser = require('body-parser');
 const steem = require("steem");
-var wlsjs = require('@whaleshares/wlsjs');
 var moment = require('moment');
 
 const { mongoose } = require('./db.js');
@@ -16,16 +15,10 @@ const bot = new Discord.Client({
     disableEveryone: true
 });
 
-wlsjs.api.setOptions({
-    url: 'https://pubrpc.whaleshares.io/'
-});
-
 bot.login(config.token);
 
 const app = express();
 app.use(bodyParser.json());
-
-const giveaway = [];
 
 var server = app.listen(process.env.PORT, "0.0.0.0", () => {
     const host = server.address().address;
@@ -726,63 +719,6 @@ function checkPosts(msg) {
                 })
 
         }
-        if (msg.channel.name === "whaleshares-post-promotion") {
-
-            getWlsPostDetails(postAuthor, postLink)
-                .then(function (date) {                    
-
-                    if (date == "1970-01-01T00:00:00") {
-
-                        msg.reply("The post link is invalid.");
-                        return;
-
-                    }
-
-                    const now = moment.utc();
-                    const created = moment.utc(date);
-
-                    // get the difference between the moments
-                    const diff = now.diff(created);
-
-                    //express as a duration
-                    const diffDuration = moment.duration(diff);
-
-                    if (Math.round(diffDuration.asSeconds()) <= 1800) {
-
-                        msg.reply(`The post is less than 30 minutes old. The post link has been deleted. Please read the guidelines.`)
-                        msg.delete();
-                        return;
-
-                    }
-
-                    if (Math.round(diffDuration.asSeconds()) >= 1123200) {
-                        msg.reply(`The post is more than 13 days old. The post link has been deleted. Please read the guidelines.`)
-                        msg.delete();
-                        return;
-                    }
-
-                    var message = `${moment.utc(date).format('MMMM Do YYYY, h:mm:ss a')} \n This post was created ${diffDuration.days()} day(s), ${diffDuration.hours()} hour(s), ${diffDuration.minutes()} min(s) ago.`;
-                    msg.channel.send({                        
-                        "embed": {
-                            "color": 2146335,
-                            "fields": [
-                                {
-                                    "name": "Date Created",
-                                    "value": message
-                                },
-                                {
-                                    "name": "Post Link",
-                                    "value": `https://${config.wlsUI}/@${postAuthor}/${postLink}`
-                                }
-                            ]
-                        }
-                    });
-
-                }).catch(function (e) {
-                    console.log(e);
-                })
-
-        }
 
     } else {
         message.channel.send('The post link is invalid. Please share only valid links in this channel.');
@@ -803,23 +739,6 @@ function getSteemPostDetails(postAuthor, postLink) {
                     var tags = obj.tags;
 
                     yes({"created": result.created, "tags": tags});
-                }
-
-
-        });
-    });
-}
-
-function getWlsPostDetails(postAuthor, postLink) {
-    return new Promise(function (yes, no) {
-        wlsjs.api.getContent(postAuthor, postLink, (err, result) => {
-            if (err) {
-                console.log(err);
-                no(err);
-            } else
-                if (result) {
-
-                    yes(result.created);
                 }
 
 
