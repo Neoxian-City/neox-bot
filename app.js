@@ -227,9 +227,10 @@ bot.on("message", async msg => {
 
         if (msg.channel.type === "dm") return;
 
-        if (msg.channel.name === "post-promotion" || msg.channel.name === "hunts" || msg.channel.name === "dragon-posts" || msg.channel.name === "whaleshares-post-promotion" || msg.channel.name === "giveaway-post-candidates") {
+        if (msg.channel.name === "post-promotion" || msg.channel.name === "city-curation" || msg.channel.name === "hunts" || msg.channel.name === "dragon-posts" || msg.channel.name === "whaleshares-post-promotion" || msg.channel.name === "giveaway-post-candidates") {
             checkPosts(msg);
         }
+
         if (msg.channel.name === "play-with-bots") {
             if (msg.content.indexOf('$neox') === 0) {
 
@@ -655,7 +656,7 @@ function checkPosts(msg) {
 
 
     if (isPostValid === true) {
-        if (msg.channel.name === "post-promotion" || msg.channel.name === "dragon-posts" || msg.channel.name === "giveaway-post-candidates") {
+        if (msg.channel.name === "post-promotion" || msg.channel.name === "dragon-posts" || msg.channel.name === "giveaway-post-candidates" || msg.channel.name === "city-curation") {
 
             getSteemPostDetails(postAuthor, postLink)
                 .then(function (data) {
@@ -714,11 +715,21 @@ function checkPosts(msg) {
                         }
                     });
 
+                    if (msg.channel.name === "city-curation") {
+                        steem.broadcast.voteAsync(config.curationWif, "neoxian-city", postAuthor, postLink, 2300, (err, result) => {
+                            if (err) {
+                                console.log(err);
+                            }
+            
+                        })
+                    }
+
                 }).catch(function (e) {
                     console.log(e);
                 })
 
         }
+
 
     } else {
         message.channel.send('The post link is invalid. Please share only valid links in this channel.');
@@ -738,7 +749,7 @@ function getSteemPostDetails(postAuthor, postLink) {
                     var obj = JSON.parse(result.json_metadata);
                     var tags = obj.tags;
 
-                    yes({"created": result.created, "tags": tags});
+                    yes({ "created": result.created, "tags": tags });
                 }
 
 
