@@ -726,7 +726,9 @@ function checkPosts(msg) {
                         var authorPermlink = 'neoxian-' + Date.now();
                         var postComment = "This post has been rewarded with 23% upvote from city trail as part of Neoxian City Curation program. We are glad to see you using #neoxian tag in your posts. If you still not in our discord, you can join our [Discord Server ](https://discord.gg/TvcKKcJ)for more goodies and giveaways.\n\nDo you know that you can earn NEOXAG tokens as passive income by delegating to @neoxiancityvb. Here are some handy links for delegations: [100SP](https://beta.steemconnect.com/sign/delegateVestingShares?delegator=&delegatee=neoxiancityvb&vesting_shares=200000%20VESTS), [250SP](https://beta.steemconnect.com/sign/delegateVestingShares?delegator=&delegatee=neoxiancityvb&vesting_shares=500000%20VESTS), [500SP](https://beta.steemconnect.com/sign/delegateVestingShares?delegator=&delegatee=neoxiancityvb&vesting_shares=999000%20VESTS), [1000SP](https://beta.steemconnect.com/sign/delegateVestingShares?delegator=&delegatee=neoxiancityvb&vesting_shares=2000000%20VESTS). Read more about the bot in [this post](https://www.neoxian.city/neoxian/@zaku/introducing-neoxag-bid-bot-sink-delegate-steem-power-and-earn-neoxag-each-and-every-day-passive-profit-for-upvote-buyers). \n\n<center>[![](https://ipfs.busy.org/ipfs/QmTLAG3rV9fUr2N9XrdoVrAmot4APQXZQeaYJqbw9Jtp1G)](https://discord.gg/TvcKKcJ)</center> \n\n";
                         steem.broadcast.comment(config.curationWif, postAuthor, postLink, "neoxian-city", authorPermlink, '', postComment, { tags: ['neoxian'] }, function(err, result) {         
-                            //console.log(err, result);
+                            if (err) {
+                                console.log(err);
+                            }
                         });
 
 
