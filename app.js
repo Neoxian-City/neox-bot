@@ -308,11 +308,13 @@ function getTopWinners() {
 }
 
 function setIntervalX(callback, delay, repetitions) {
-  const x = 0;
+  let x = 0;
+
   const intervalID = setInterval(() => {
     callback();
-
-    if ((x + 1) === repetitions) {
+    x += 1;
+    // eslint-disable-next-line no-plusplus,no-const-assign
+    if (x === repetitions) {
       clearInterval(intervalID);
     }
   }, delay);
@@ -474,7 +476,24 @@ bot.on('message', async (msg) => {
                       },
                     });
 
-                    msg.channel.send(':tada: Giveaway has Ended. A winner could not be determined!');
+                    msg.channel.send({
+                      embed: {
+                        title: ':tada: Giveaway has Ended :tada:',
+                        description: 'Could not determine a winner!',
+                        url: '',
+                        color: 2146335,
+                        footer: {
+                          icon_url: 'https://steemitimages.com/p/4qEixipsxSf1jXvCicS49aiaKDfFxASf1eKR39suyU4qmikNaw2FMepusxFTD1TUaJ',
+                          text: msg.embeds[0].footer.text,
+                        },
+                        fields: [
+                          {
+                            name: 'Initiator',
+                            value: msg.embeds[0].fields[0].value,
+                          },
+                        ],
+                      },
+                    });
 
                     // console.log(winnersArray);
                     Giveaway.updateOne({ _id: data.id }, { winners: winnersArray, status: 'completed' }, (err1) => {
@@ -529,7 +548,24 @@ bot.on('message', async (msg) => {
                     },
                   });
 
-                  msg.channel.send(`:tada: Congratulations ${winnersArray}. You have been randomly selected as the winner for the giveaway.`);
+                  msg.channel.send({
+                    embed: {
+                      title: ':tada: Giveaway has Ended :tada:',
+                      description: `:tada: Congratulations ${winnersArray}. You have been randomly selected as the winner for the giveaway.`,
+                      url: '',
+                      color: 2146335,
+                      footer: {
+                        icon_url: 'https://steemitimages.com/p/4qEixipsxSf1jXvCicS49aiaKDfFxASf1eKR39suyU4qmikNaw2FMepusxFTD1TUaJ',
+                        text: msg.embeds[0].footer.text,
+                      },
+                      fields: [
+                        {
+                          name: 'Initiator',
+                          value: msg.embeds[0].fields[0].value,
+                        },
+                      ],
+                    },
+                  });
 
                   // console.log(winnersArray);
                   Giveaway.updateOne({ _id: data.id }, { winners: winnersArray, status: 'completed' }, (err2) => {
@@ -553,7 +589,7 @@ bot.on('message', async (msg) => {
 
     if (msg.channel.type === 'dm') return;
 
-    if (msg.channel.name === 'post-promotion' || msg.channel.name === 'city-curation' || msg.channel.name === 'hunts' || msg.channel.name === 'dragon-posts' || msg.channel.name === 'whaleshares-post-promotion' || msg.channel.name === 'giveaway-post-candidates') {
+    if (msg.channel.name === 'post-promotion' || msg.channel.name === 'city-curation' || msg.channel.name === 'dragon-posts' || msg.channel.name === 'giveaway-post-candidates') {
       checkPosts(msg);
     }
 
@@ -834,9 +870,10 @@ bot.on('message', async (msg) => {
 
                           if (val.length > 0) {
                             for (let i = 0; i < val.length; i += 1) {
+                              if (val[i].user === value.initiatorID) return;
                               if (msg.guild.roles.get(config.roleID).members.get(val[i].user)) {
                                 // eslint-disable-next-line no-console
-                                console.log(`Notification User: ${val[i].userName}`);
+                                // console.log(`Notification User: ${val[i].userName}`);
 
                                 bot.users.get(val[i].user).send({
                                   embed: {
