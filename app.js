@@ -870,7 +870,6 @@ bot.on('message', async (msg) => {
 
                           if (val.length > 0) {
                             for (let i = 0; i < val.length; i += 1) {
-                              if (val[i].user === value.initiatorID) return;
                               if (msg.guild.roles.get(config.roleID).members.get(val[i].user)) {
                                 // eslint-disable-next-line no-console
                                 // console.log(`Notification User: ${val[i].userName}`);
