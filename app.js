@@ -71,8 +71,8 @@ function checkPosts(msg) {
           // express as a duration
           const diffDuration = moment.duration(diff);
 
-          if (Math.round(diffDuration.asSeconds()) <= 900) {
-            msg.reply('The post is less than 15 minutes old. The post link has been deleted. Please read the guidelines.');
+          if (Math.round(diffDuration.asSeconds()) <= 300) {
+            msg.reply('The post is less than 5 minutes old. The post link has been deleted. Please read the guidelines.');
             msg.delete();
             return;
           }
