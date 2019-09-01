@@ -174,7 +174,7 @@ bot.on('message', async (msg) => {
     if (msg.channel.name === 'play-with-bots') {
       if (msg.content.indexOf('$neox') === 0) {
         // eslint-disable-next-line max-len, no-useless-concat
-        const command = 'Please use the following commands to use my features.\n\n ' + '`' + '$random 405 and 670' + '`' + ' - Use this command to find a random number in #play-with-bots channel.\n\n';
+        const command = 'Please use the following commands to use my features.\n \n ' + '`' + '$random 405 and 670' + '`' + ' - Use this command to find a random number in #play-with-bots channel.';
 
         msg.channel.send({
           embed: {
