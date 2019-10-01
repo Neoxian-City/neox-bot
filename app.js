@@ -58,7 +58,7 @@ function checkPosts(msg) {
 
 
   if (isPostValid === true) {
-    if (msg.channel.name === 'post-promotion' || msg.channel.name === 'dragon-posts' || msg.channel.name === 'giveaway-post-candidates' || msg.channel.name === 'city-curation') {
+    if (msg.channel.name === 'post-promotion' || msg.channel.name === 'dragon-posts' || msg.channel.name === 'high-quality-posts' || msg.channel.name === 'photography-posts' || msg.channel.name === 'city-curation') {
       getSteemPostDetails(postAuthor, postLink)
         .then((data) => {
           const date = data.created;
