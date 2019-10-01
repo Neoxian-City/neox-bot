@@ -24,8 +24,15 @@ function getSteemPostDetails(postAuthor, postLink) {
       if (result) {
         const obj = JSON.parse(result.json_metadata);
         const { tags } = obj;
-
-        yes({ created: result.created, tags });
+        const benf = [];
+        for (let i = 0; i < result.beneficiaries.length; i += 1) {
+          benf.push(`${result.beneficiaries[i].account}(${result.beneficiaries[i]
+            .weight / 100}%)`);
+        }
+        if (benf.length === 0) {
+          benf.push('No beneficiaries added');
+        }
+        yes({ created: result.created, tags, beneficiaries: benf });
       }
     });
   }));
@@ -100,6 +107,10 @@ function checkPosts(msg) {
                   name: 'Tags',
                   value: `${data.tags.join(', ')}`,
                 },
+                {
+                  name: 'Beneficiaries',
+                  value: `${data.beneficiaries.join(', ')}`,
+                },
               ],
             },
           });
@@ -167,7 +178,7 @@ bot.on('message', async (msg) => {
 
     if (msg.channel.type === 'dm') return;
 
-    if (msg.channel.name === 'post-promotion' || msg.channel.name === 'city-curation' || msg.channel.name === 'dragon-posts' || msg.channel.name === 'giveaway-post-candidates') {
+    if (msg.channel.name === 'post-promotion' || msg.channel.name === 'city-curation' || msg.channel.name === 'dragon-posts' || msg.channel.name === 'high-quality-posts' || msg.channel.name === 'photography-posts') {
       checkPosts(msg);
     }
 

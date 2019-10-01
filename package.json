@@ -1,6 +1,6 @@
 {
   "name": "neox-bot",
-  "version": "v2.1.0",
+  "version": "v2.2.0",
   "description": "A bot for Neoxian City.",
   "main": "app.js",
   "scripts": {
