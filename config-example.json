@@ -3,6 +3,7 @@
     "roleID": "593849034783981579",
     "database": "mongodb://localhost/neox",
     "steemUI": "steempeak.com",
-    "curationWif": ""
+    "curationWif": "",
+    "neoxianDiscord": "https://discord.gg/s2ff6JQ"
     
 }
