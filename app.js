@@ -41,6 +41,98 @@ function getSteemPostDetails(postAuthor, postLink) {
   }));
 }
 
+function stream() {
+  try {
+    bot.users.get('404015376511401986').send({
+      embed: {
+        description: 'Stream has started',
+        color: 16312092,
+      },
+    });
+    steem.api.streamOperations((err, result) => {
+      // console.log(result);
+      if (err) {
+        // eslint-disable-next-line no-console
+        console.log(err);
+        bot.users.get('404015376511401986').send({
+          embed: {
+            description: '1. Error while streaming operations. Streaming will be restarted.',
+            color: 13632027,
+          },
+        });
+        stream();
+      }
+
+      if (result) {
+        if (result[0] === 'comment' && !result[1].parent_author) {
+          const obj = JSON.parse(result[1].json_metadata);
+          const { app } = obj;
+          if (app === 'neoxiancity/0.1') {
+            getSteemPostDetails(result[1].author, result[1].permlink)
+              .then((data) => {
+                const date = data.created;
+
+                if (date === '1970-01-01T00:00:00') {
+                  return;
+                }
+
+                const now = moment.utc();
+                const created = moment.utc(date);
+                // get the difference between the moments
+                const diff = now.diff(created);
+
+                // console.log(moment(msg.createdTimestamp));
+
+                // express as a duration
+                const diffDuration = moment.duration(diff);
+
+                if (Math.round(diffDuration.asSeconds()) <= 60) {
+                  bot.channels.get('637410373380866058').send(`New Post from Neoxian City: \n https://${config.steemUI}/@${result[1].author}/${result[1].permlink}`);
+                  bot.channels.get('637410373380866058').send({
+                    embed: {
+                      color: 2146335,
+                      fields: [
+                        {
+                          name: 'Date Created',
+                          value: `${moment.utc(data.created).format('MMMM Do YYYY, h:mm:ss a')}`,
+                        },
+                        {
+                          name: 'Tags',
+                          value: `${data.tags.join(', ')}`,
+                        },
+                        {
+                          name: 'Beneficiaries',
+                          value: `${data.beneficiaries.join(', ')}`,
+                        },
+                        {
+                          name: 'App',
+                          value: `${data.app}`,
+                        },
+                      ],
+                    },
+                  });
+                }
+              }).catch((e) => {
+              // eslint-disable-next-line no-console
+                console.log(`Get steemPostDetails Catch Block: ${e}`);
+              });
+          }
+        }
+      }
+    });
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.log(e);
+    bot.users.get('404015376511401986').send({
+      embed: {
+        description: '2. Error while streaming operations. Streaming will be restarted.',
+        color: 13632027,
+      },
+    });
+    stream();
+  }
+}
+
 function checkPosts(msg) {
   const url = msg.content.match(/\bhttps?:\/\/\S+/gi);
   // Check if the URL is null or not
@@ -172,6 +264,7 @@ bot.on('ready', async () => {
   console.log(`Bot is ready ${bot.user.username}`);
   try {
     await bot.generateInvite(['ADMINISTRATOR']);
+    stream();
   } catch (e) {
     // eslint-disable-next-line no-console
     console.log(e.stack);
