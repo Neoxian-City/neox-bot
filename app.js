@@ -259,6 +259,10 @@ const server = app.listen(process.env.PORT, '0.0.0.0', () => {
   console.log('Web server started at http://%s:%s', host, port);
 });
 
+steem.api.setOptions({
+  url: 'https://anyx.io',
+});
+
 bot.on('ready', async () => {
   // eslint-disable-next-line no-console
   console.log(`Bot is ready ${bot.user.username}`);
