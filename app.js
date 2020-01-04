@@ -260,7 +260,7 @@ const server = app.listen(process.env.PORT, '0.0.0.0', () => {
 });
 
 steem.api.setOptions({
-  url: 'https://anyx.io',
+  url: config.RPCNode,
 });
 
 bot.on('ready', async () => {
