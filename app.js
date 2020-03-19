@@ -283,6 +283,12 @@ bot.on('message', async (msg) => {
     if (msg.channel.type === 'dm') return;
 
     if (msg.channel.name === 'post-promotion' || msg.channel.name === 'city-curation' || msg.channel.name === 'dragon-posts' || msg.channel.name === 'high-quality-posts' || msg.channel.name === 'photography-posts') {
+      const msgLower = msg.content.toLowerCase();
+      const strPos = msgLower.indexOf('steemit.com');
+      if (strPos > -1) {
+        msg.reply('Steemit links are forbidden in this City. Please use other links like Neoxian.city or SteemPeak. Your link has been deleted. Also, please read the rules of the city for more details.');
+        return;
+      }
       checkPosts(msg);
     }
 
