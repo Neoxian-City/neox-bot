@@ -8,12 +8,12 @@ A discord bot for the Neoxian City. Read the below post for more details.
 * Node.js
 * Express
 * Discordjs
-* Steem
+* Hive
 * Moment Js
 * Mongo DB
 
 ### Current Bot version
-v2.5.1
+v2.7.0
 
 ### Installation
 

@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const config = require('./config');
 
-mongoose.connect(config.database, { useNewUrlParser: true, useFindAndModify: false });
+mongoose.connect(config.database, { useNewUrlParser: true, useFindAndModify: false, useUnifiedTopology: true });
 const db = mongoose.connection;
 
 // Check DB Connection
