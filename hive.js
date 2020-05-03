@@ -7,33 +7,33 @@ const client = new Client(config.hiveRPCNodes);
 
 let streamOn = false;
 
-const getHivePostDetails = async (postAuthor, postLink) => new Promise(((yes, no) => {
-  client.database.call('get_content', [postAuthor, postLink])
-    .then((result) => {
-      if (result) {
-        const obj = JSON.parse(result.json_metadata);
-        const { tags } = obj;
-        const { app } = obj;
-        const benf = [];
-        for (let i = 0; i < result.beneficiaries.length; i += 1) {
-          benf.push(`${result.beneficiaries[i].account}(${result.beneficiaries[i]
-            .weight / 100}%)`);
-        }
-        if (benf.length === 0) {
-          benf.push('No beneficiaries added');
-        }
-        yes({
-          created: result.created, tags, app, beneficiaries: benf,
-        });
+const getHivePostDetails = async (postAuthor, postLink) => {
+  let output = {};
+  try {
+    const content = await client.database.call('get_content', [postAuthor, postLink]);
+    if (content) {
+      const obj = JSON.parse(content.json_metadata);
+      const { tags } = obj;
+      const { app } = obj;
+      const benf = [];
+      for (let i = 0; i < content.beneficiaries.length; i += 1) {
+        benf.push(`${content.beneficiaries[i].account}(${content.beneficiaries[i]
+          .weight / 100}%)`);
       }
-    })
-    .catch((err) => {
-      // eslint-disable-next-line no-console
-      console.log(err);
-      bot.errorMessage(`Error getting Hive Post Details: \n ${err}`);
-      no(err);
-    });
-}));
+      if (benf.length === 0) {
+        benf.push('No beneficiaries added');
+      }
+      output = {
+        created: content.created, lastUpdate: content.last_update, tags, app, beneficiaries: benf,
+      };
+    }
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.log(`Error getting Hive Post Details: \n ${e} \n\n Author: ${postAuthor} \n Permlink: ${postLink}`);
+    bot.errorMessage(`Error getting Hive Post Details: \n ${e} \n\n Author: ${postAuthor} \n Permlink: ${postLink}`);
+  }
+  return output;
+};
 
 const checkPosts = async (msg) => {
   const url = msg.content.match(/\bhttps?:\/\/\S+/gi);
@@ -98,7 +98,7 @@ const checkPosts = async (msg) => {
                 },
                 {
                   name: 'Post Link',
-                  value: `https://${config.steemUI}/@${postAuthor}/${postLink}`,
+                  value: `https://${config.UI}/@${postAuthor}/${postLink}`,
                 },
                 {
                   name: 'Tags',
@@ -174,59 +174,37 @@ const stream = async () => {
     bot.errorMessage('Stream has started');
     (async () => {
       const opsStream = client.blockchain.getOperationsStream();
-      opsStream.on('data', (result) => {
+      opsStream.on('data', async (result) => {
         if (result) {
-          if (result[0] === 'comment' && !result[1].parent_author) {
-            const obj = JSON.parse(result[1].json_metadata);
-            const { app } = obj;
-            if (app === 'neoxiancity/0.1') {
-              getHivePostDetails(result[1].author, result[1].permlink)
-                .then((data) => {
-                  const date = data.created;
-
-                  if (date === '1970-01-01T00:00:00') {
-                    return;
-                  }
-
-                  const now = moment.utc();
-                  const created = moment.utc(date);
-                  // get the difference between the moments
-                  const diff = now.diff(created);
-
-                  // express as a duration
-                  const diffDuration = moment.duration(diff);
-
-                  if (Math.round(diffDuration.asSeconds()) <= 60) {
-                    bot.client.channels.cache.get(config.cityPostsChannel).send(`New Post from Neoxian City: \n https://${config.steemUI}/@${result[1].author}/${result[1].permlink}`);
-                    bot.client.channels.cache.get(config.cityPostsChannel).send({
-                      embed: {
-                        color: 2146335,
-                        fields: [
-                          {
-                            name: 'Date Created',
-                            value: `${moment.utc(data.created).format('MMMM Do YYYY, h:mm:ss a')}`,
-                          },
-                          {
-                            name: 'Tags',
-                            value: `${data.tags.join(', ')}`,
-                          },
-                          {
-                            name: 'Beneficiaries',
-                            value: `${data.beneficiaries.join(', ')}`,
-                          },
-                          {
-                            name: 'App',
-                            value: `${data.app}`,
-                          },
-                        ],
+          if (result.op[0] === 'comment' && !result.op[1].parent_author) {
+            const data = await getHivePostDetails(result.op[1].author, result.op[1].permlink);
+            if (data.app === 'neoxiancity/0.1') {
+              if (data.created === data.lastUpdate) {
+                bot.client.channels.cache.get(config.cityPostsChannel).send(`New Post from Neoxian City: \n https://${config.UI}/@${result.op[1].author}/${result.op[1].permlink}`);
+                bot.client.channels.cache.get(config.cityPostsChannel).send({
+                  embed: {
+                    color: 2146335,
+                    fields: [
+                      {
+                        name: 'Date Created',
+                        value: `${moment.utc(data.created).format('MMMM Do YYYY, h:mm:ss a')}`,
                       },
-                    });
-                  }
-                }).catch((e) => {
-                  // eslint-disable-next-line no-console
-                  console.log(`Get steemPostDetails Catch Block: \n ${e}`);
-                  bot.errorMessage(`Get HivePostDetails Catch Block: \n ${e}`);
+                      {
+                        name: 'Tags',
+                        value: `${data.tags.join(', ')}`,
+                      },
+                      {
+                        name: 'Beneficiaries',
+                        value: `${data.benf.join(', ')}`,
+                      },
+                      {
+                        name: 'App',
+                        value: `${data.app}`,
+                      },
+                    ],
+                  },
                 });
+              }
             }
           }
         }
