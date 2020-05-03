@@ -12,7 +12,7 @@ const getHivePostDetails = async (postAuthor, postLink) => {
   try {
     const content = await client.database.call('get_content', [postAuthor, postLink]);
     if (content) {
-      const obj = JSON.parse(content.json_metadata);
+      const obj = JSON.parse(content.json_metadata.toString());
       const { tags } = obj;
       const { app } = obj;
       const benf = [];
