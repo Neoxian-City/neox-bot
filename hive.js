@@ -12,20 +12,29 @@ const getHivePostDetails = async (postAuthor, postLink) => {
   try {
     const content = await client.database.call('get_content', [postAuthor, postLink]);
     if (content) {
-      const obj = JSON.parse(content.json_metadata.toString());
-      const { tags } = obj;
-      const { app } = obj;
-      const benf = [];
-      for (let i = 0; i < content.beneficiaries.length; i += 1) {
-        benf.push(`${content.beneficiaries[i].account}(${content.beneficiaries[i]
-          .weight / 100}%)`);
+      if (content.json_metadata) {
+        const obj = JSON.parse(content.json_metadata);
+        const { tags } = obj;
+        let { app } = obj;
+        const benf = [];
+        for (let i = 0; i < content.beneficiaries.length; i += 1) {
+          benf.push(`${content.beneficiaries[i].account}(${content.beneficiaries[i]
+            .weight / 100}%)`);
+        }
+        if (benf.length === 0) {
+          benf.push('No beneficiaries added');
+        }
+        if (!app) {
+          app = 'No app added';
+        }
+        output = {
+          created: content.created, lastUpdate: content.last_update, tags, app, beneficiaries: benf,
+        };
+      } else {
+        output = {
+          created: content.created, lastUpdate: content.last_update,
+        };
       }
-      if (benf.length === 0) {
-        benf.push('No beneficiaries added');
-      }
-      output = {
-        created: content.created, lastUpdate: content.last_update, tags, app, beneficiaries: benf,
-      };
     }
   } catch (e) {
     // eslint-disable-next-line no-console
@@ -195,7 +204,7 @@ const stream = async () => {
                       },
                       {
                         name: 'Beneficiaries',
-                        value: `${data.benf.join(', ')}`,
+                        value: `${data.beneficiaries.join(', ')}`,
                       },
                       {
                         name: 'App',
