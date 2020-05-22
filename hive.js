@@ -1,9 +1,10 @@
-const { Client } = require('@hivechain/dhive');
+const dhive = require('@hivechain/dhive');
 const moment = require('moment');
 const config = require('./config.json');
 const bot = require('./bot.js');
 
-const client = new Client(config.hiveRPCNodes);
+const client = new dhive.Client(config.hiveRPCNodes);
+const key = dhive.PrivateKey.from(config.curationWif);
 
 let streamOn = false;
 
@@ -132,14 +133,16 @@ const checkPosts = async (msg) => {
               permlink: postLink,
               weight: 2300, // needs to be an integer for the vote function
             };
-            client.broadcast.vote(vote, config.curationWif)
+            client.broadcast.vote(vote, key)
               .then((result) => {
                 // eslint-disable-next-line no-console
                 console.log('City Curation Vote Successful:', result);
+                bot.errorMessage(`City Curation Vote Successful: \n\n ${JSON.stringify(result)}`);
               })
               .catch((error) => {
                 // eslint-disable-next-line no-console
-                console.log(`City Curation Vote Error: ${error}`);
+                console.log('City Curation Vote Error:', error);
+                bot.errorMessage(`City Curation Vote Error: \n\n ${error}`);
               });
 
             const authorPermlink = `neoxian-${Date.now()}`;
@@ -154,15 +157,15 @@ const checkPosts = async (msg) => {
               title: `Neoxian City Curation ${Date.now()}`,
             };
             client.broadcast
-              .comment(comment, config.curationWif)
+              .comment(comment, key)
               .then((result) => {
                 // eslint-disable-next-line no-console
-                console.log(`City Curation Comment Successful: \n ${result}`);
-                bot.errorMessage(`City Curation Comment Successful: \n ${result}`);
+                console.log('City Curation Comment Successful:', result);
+                bot.errorMessage(`City Curation Comment Successful: \n ${JSON.stringify(result)}`);
               })
               .catch((error) => {
                 // eslint-disable-next-line no-console
-                console.log(`City Curation Comment Error: \n ${error}`);
+                console.log('City Curation Comment Error:', error);
                 bot.errorMessage(`City Curation Comment Error: \n ${error}`);
               });
           }
