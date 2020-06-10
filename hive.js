@@ -1,4 +1,4 @@
-const dhive = require('@hivechain/dhive');
+const dhive = require('@hiveio/dhive');
 const moment = require('moment');
 const config = require('./config.json');
 const bot = require('./bot.js');
@@ -7,6 +7,21 @@ const client = new dhive.Client(config.hiveRPCNodes);
 const key = dhive.PrivateKey.from(config.curationWif);
 
 let streamOn = false;
+
+const getGlobalProperties = async () => {
+  let totalVestingShares = '';
+  let totalVestingFundSteem = '';
+  try {
+    const result = await client.database.getDynamicGlobalProperties();
+    totalVestingShares = result.total_vesting_shares;
+    totalVestingFundSteem = result.total_vesting_fund_steem;
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.log(`Error in getGlobalProperties: \n ${e}`);
+    bot.errorMessage(`Error in getGlobalProperties: \n ${e}`);
+  }
+  return ({ totalVestingShares, totalVestingFundSteem });
+};
 
 const getHivePostDetails = async (postAuthor, postLink) => {
   let output = {};
@@ -134,39 +149,39 @@ const checkPosts = async (msg) => {
               weight: 2300, // needs to be an integer for the vote function
             };
             client.broadcast.vote(vote, key)
-              .then((result) => {
+              .then(async (result) => {
                 // eslint-disable-next-line no-console
                 console.log('City Curation Vote Successful:', result);
                 bot.errorMessage(`City Curation Vote Successful: \n\n ${JSON.stringify(result)}`);
+                const authorPermlink = `neoxian-${Date.now()}`;
+                const gp = await getGlobalProperties();
+                const postComment = `This post has been rewarded with an upvote from city trail as part of Neoxian City Curation program ![](https://cdn.steemitimages.com/DQmZ4SqDess96h8nz3E2BnRczepPF9WaYa2MrGdgGbf6yTT/ezgif-5-4ec7c52a09cb.gif) ![](https://cdn.steemitimages.com/DQmZLjMtgpjfPzjf6xmHUpCH4DYmFjXRZJrHb3KmUkQCcSj/ezgif-5-7a2c6f978f8b.gif). We are glad to see you using #neoxian tag in your posts. If you still not in our discord, you can join our [Discord Server](${config.neoxianDiscord}) for more goodies and giveaways.\n\nDo you know that you can earn NEOXAG tokens as passive income by delegating to @neoxiancityvb. Here are some handy links for delegations: [100HP](https://hivesigner.com/sign/delegateVestingShares?delegator=&delegatee=indiaunited&vesting_shares=${(100 * parseFloat(gp.totalVestingShares.split(' ')[0])) / parseFloat(gp.totalVestingFundSteem.split(' ')[0])}%20VESTS), [250HP](https://hivesigner.com/sign/delegateVestingShares?delegator=&delegatee=indiaunited&vesting_shares=${(250 * parseFloat(gp.totalVestingShares.split(' ')[0])) / parseFloat(gp.totalVestingFundSteem.split(' ')[0])}%20VESTS), [500HP](https://hivesigner.com/sign/delegateVestingShares?delegator=&delegatee=indiaunited&vesting_shares=${(500 * parseFloat(gp.totalVestingShares.split(' ')[0])) / parseFloat(gp.totalVestingFundSteem.split(' ')[0])}%20VESTS), [1000HP](https://hivesigner.com/sign/delegateVestingShares?delegator=&delegatee=indiaunited&vesting_shares=${(1000 * parseFloat(gp.totalVestingShares.split(' ')[0])) / parseFloat(gp.totalVestingFundSteem.split(' ')[0])}%20VESTS). Read more about the bot in [this post](https://www.neoxian.city/neoxian/@zaku/introducing-neoxag-bid-bot-sink-delegate-steem-power-and-earn-neoxag-each-and-every-day-passive-profit-for-upvote-buyers). Note: The liquid neoxag reward of this comment will be burned and stake will be used for curation. \n<center>[![](https://ipfs.busy.org/ipfs/QmTLAG3rV9fUr2N9XrdoVrAmot4APQXZQeaYJqbw9Jtp1G)](${config.neoxianDiscord})</center> \n\n`;
+                const comment = {
+                  author: 'neoxian-city',
+                  body: postComment,
+                  json_metadata: JSON.stringify({ app: 'neoxiancity/0.1', tags: ['neoxian'] }),
+                  parent_author: postAuthor,
+                  parent_permlink: postLink,
+                  permlink: authorPermlink,
+                  title: `Neoxian City Curation ${Date.now()}`,
+                };
+                client.broadcast
+                  .comment(comment, key)
+                  .then((output) => {
+                    // eslint-disable-next-line no-console
+                    console.log('City Curation Comment Successful:', output);
+                    bot.errorMessage(`City Curation Comment Successful: \n ${JSON.stringify(output)}`);
+                  })
+                  .catch((error) => {
+                    // eslint-disable-next-line no-console
+                    console.log('City Curation Comment Error:', error);
+                    bot.errorMessage(`City Curation Comment Error: \n ${error}`);
+                  });
               })
               .catch((error) => {
                 // eslint-disable-next-line no-console
                 console.log('City Curation Vote Error:', error);
                 bot.errorMessage(`City Curation Vote Error: \n\n ${error}`);
-              });
-
-            const authorPermlink = `neoxian-${Date.now()}`;
-            const postComment = `This post has been rewarded with an upvote from city trail as part of Neoxian City Curation program ![](https://cdn.steemitimages.com/DQmZ4SqDess96h8nz3E2BnRczepPF9WaYa2MrGdgGbf6yTT/ezgif-5-4ec7c52a09cb.gif) ![](https://cdn.steemitimages.com/DQmZLjMtgpjfPzjf6xmHUpCH4DYmFjXRZJrHb3KmUkQCcSj/ezgif-5-7a2c6f978f8b.gif). We are glad to see you using #neoxian tag in your posts. If you still not in our discord, you can join our [Discord Server](${config.neoxianDiscord}) for more goodies and giveaways.\n\nDo you know that you can earn NEOXAG tokens as passive income by delegating to @neoxiancityvb. Here are some handy links for delegations: [100SP](https://beta.steemconnect.com/sign/delegateVestingShares?delegator=&delegatee=neoxiancityvb&vesting_shares=200000%20VESTS), [250SP](https://beta.steemconnect.com/sign/delegateVestingShares?delegator=&delegatee=neoxiancityvb&vesting_shares=500000%20VESTS), [500SP](https://beta.steemconnect.com/sign/delegateVestingShares?delegator=&delegatee=neoxiancityvb&vesting_shares=999000%20VESTS), [1000SP](https://beta.steemconnect.com/sign/delegateVestingShares?delegator=&delegatee=neoxiancityvb&vesting_shares=2000000%20VESTS). Read more about the bot in [this post](https://www.neoxian.city/neoxian/@zaku/introducing-neoxag-bid-bot-sink-delegate-steem-power-and-earn-neoxag-each-and-every-day-passive-profit-for-upvote-buyers). Note: The liquid neoxag reward of this comment will be burned and stake will be used for curation. \n<center>[![](https://ipfs.busy.org/ipfs/QmTLAG3rV9fUr2N9XrdoVrAmot4APQXZQeaYJqbw9Jtp1G)](${config.neoxianDiscord})</center> \n\n`;
-            const comment = {
-              author: 'neoxian-city',
-              body: postComment,
-              json_metadata: JSON.stringify({ app: 'neoxiancity/0.1', tags: ['neoxian'] }),
-              parent_author: postAuthor,
-              parent_permlink: postLink,
-              permlink: authorPermlink,
-              title: `Neoxian City Curation ${Date.now()}`,
-            };
-            client.broadcast
-              .comment(comment, key)
-              .then((result) => {
-                // eslint-disable-next-line no-console
-                console.log('City Curation Comment Successful:', result);
-                bot.errorMessage(`City Curation Comment Successful: \n ${JSON.stringify(result)}`);
-              })
-              .catch((error) => {
-                // eslint-disable-next-line no-console
-                console.log('City Curation Comment Error:', error);
-                bot.errorMessage(`City Curation Comment Error: \n ${error}`);
               });
           }
         }).catch((e) => {
