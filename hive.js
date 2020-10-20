@@ -78,7 +78,6 @@ const checkPosts = async (msg) => {
   // eslint-disable-next-line prefer-destructuring
   const postLink = url[0].split('@')[1].split('/')[1].split('?')[0];
 
-
   if (isPostValid === true) {
     if (msg.channel.name === 'post-promotion' || msg.channel.name === 'dragon-posts' || msg.channel.name === 'high-quality-posts' || msg.channel.name === 'photography-posts' || msg.channel.name === 'city-curation') {
       getHivePostDetails(postAuthor, postLink)
@@ -204,35 +203,37 @@ const stream = async () => {
       opsStream.on('data', async (result) => {
         if (result) {
           if (result.op[0] === 'comment' && !result.op[1].parent_author) {
-            const data = await getHivePostDetails(result.op[1].author, result.op[1].permlink);
-            if (data.app === 'neoxiancity/0.1') {
-              if (data.created === data.lastUpdate) {
-                bot.client.channels.cache.get(config.cityPostsChannel).send(`New Post from Neoxian City: \n https://${config.UI}/@${result.op[1].author}/${result.op[1].permlink}`);
-                bot.client.channels.cache.get(config.cityPostsChannel).send({
-                  embed: {
-                    color: 2146335,
-                    fields: [
-                      {
-                        name: 'Date Created',
-                        value: `${moment.utc(data.created).format('MMMM Do YYYY, h:mm:ss a')}`,
-                      },
-                      {
-                        name: 'Tags',
-                        value: `${data.tags.join(', ')}`,
-                      },
-                      {
-                        name: 'Beneficiaries',
-                        value: `${data.beneficiaries.join(', ')}`,
-                      },
-                      {
-                        name: 'App',
-                        value: `${data.app}`,
-                      },
-                    ],
-                  },
-                });
+            setTimeout(async () => {
+              const data = await getHivePostDetails(result.op[1].author, result.op[1].permlink);
+              if (data.app && data.app === 'neoxiancity/0.1') {
+                if (data.created === data.lastUpdate) {
+                  bot.client.channels.cache.get(config.cityPostsChannel).send(`New Post from Neoxian City: \n https://${config.UI}/@${result.op[1].author}/${result.op[1].permlink}`);
+                  bot.client.channels.cache.get(config.cityPostsChannel).send({
+                    embed: {
+                      color: 2146335,
+                      fields: [
+                        {
+                          name: 'Date Created',
+                          value: `${moment.utc(data.created).format('MMMM Do YYYY, h:mm:ss a')}`,
+                        },
+                        {
+                          name: 'Tags',
+                          value: `${data.tags.join(', ')}`,
+                        },
+                        {
+                          name: 'Beneficiaries',
+                          value: `${data.beneficiaries.join(', ')}`,
+                        },
+                        {
+                          name: 'App',
+                          value: `${data.app}`,
+                        },
+                      ],
+                    },
+                  });
+                }
               }
-            }
+            }, 20000);
           }
         }
       });
