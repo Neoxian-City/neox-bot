@@ -1,9 +1,9 @@
 const dhive = require('@hiveio/dhive');
 const moment = require('moment');
-const config = require('./config.json');
-const bot = require('./bot.js');
+const config = require('./config');
+const bot = require('./bot');
 
-const client = new dhive.Client(config.hiveRPCNodes, { rebrandedApi: true });
+const client = new dhive.Client(config.hiveRPCNodes);
 const key = dhive.PrivateKey.from(config.curationWif);
 
 let streamOn = false;
@@ -99,21 +99,15 @@ const checkPosts = async (msg) => {
           // express as a duration
           const diffDuration = moment.duration(diff);
 
-          if (Math.round(diffDuration.asSeconds()) <= 300) {
-            msg.reply('The post is less than 5 minutes old. The post link has been deleted. Please read the guidelines.');
-            msg.delete();
-            return;
-          }
-
-          if (Math.round(diffDuration.asSeconds()) >= 432000) {
-            msg.reply('The post is more than 5 days old. The post link has been deleted. Please read the guidelines.');
+          if (Math.round(diffDuration.asSeconds()) >= 86400) {
+            msg.reply('The post is greater than 24 hours old. The post link has been deleted. Please post only links that are less than 24 hours old.');
             msg.delete();
             return;
           }
 
           const message = `${moment.utc(date).format('MMMM Do YYYY, h:mm:ss a')} \n This post was created ${diffDuration.days()} day(s), ${diffDuration.hours()} hour(s), ${diffDuration.minutes()} min(s) ago.`;
           msg.channel.send({
-            embed: {
+            embeds: [{
               color: 2146335,
               fields: [
                 {
@@ -137,7 +131,7 @@ const checkPosts = async (msg) => {
                   value: `${data.app}`,
                 },
               ],
-            },
+            }],
           });
 
           if (msg.channel.name === 'city-curation') {
@@ -197,7 +191,7 @@ const checkPosts = async (msg) => {
 const stream = async () => {
   try {
     streamOn = true;
-    bot.errorMessage('Stream has started');
+    // bot.errorMessage('Stream has started');
     (async () => {
       const opsStream = client.blockchain.getOperationsStream();
       opsStream.on('data', async (result) => {
@@ -209,7 +203,7 @@ const stream = async () => {
                 if (data.created === data.lastUpdate) {
                   bot.client.channels.cache.get(config.cityPostsChannel).send(`New Post from Neoxian City: \n https://${config.UI}/@${result.op[1].author}/${result.op[1].permlink}`);
                   bot.client.channels.cache.get(config.cityPostsChannel).send({
-                    embed: {
+                    embeds: [{
                       color: 2146335,
                       fields: [
                         {
@@ -229,7 +223,7 @@ const stream = async () => {
                           value: `${data.app}`,
                         },
                       ],
-                    },
+                    }],
                   });
                 }
               }

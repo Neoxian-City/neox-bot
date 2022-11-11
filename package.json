@@ -1,6 +1,6 @@
 {
   "name": "neox-bot",
-  "version": "2.8.0",
+  "version": "2.9.0",
   "description": "A bot for Neoxian City.",
   "main": "app.js",
   "scripts": {
@@ -9,19 +9,17 @@
   "author": "Balasubramanian Srinivasan",
   "license": "ISC",
   "dependencies": {
-    "@hiveio/dhive": "^0.14.8",
-    "body-parser": "^1.19.0",
-    "discord.js": "^12.4.0",
-    "express": "^4.17.1",
-    "moment": "^2.29.1",
-    "mongoose": "^5.10.9"
+    "@hiveio/dhive": "^1.2.4",
+    "discord.js": "^14.6.0",
+    "dotenv": "^16.0.3",
+    "moment": "^2.29.4"
   },
   "devDependencies": {
-    "eslint": "^7.11.0",
-    "eslint-config-airbnb-base": "^14.2.0",
+    "eslint": "^8.27.0",
+    "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-node": "^4.1.0",
-    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-utils": "^2.1.0"
+    "eslint-utils": "^3.0.0"
   }
 }

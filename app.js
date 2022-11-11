@@ -1,9 +1,5 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const hive = require('./hive.js');
-const bot = require('./bot.js');
-// eslint-disable-next-line no-unused-vars
-const { mongoose } = require('./db.js');
+const hive = require('./hive');
+const bot = require('./bot');
 const pkg = require('./package.json');
 
 function getRndInteger(min, max) {
@@ -12,34 +8,27 @@ function getRndInteger(min, max) {
   return Math.floor(Math.random() * (maxim - minim + 1)) + minim;
 }
 
-const app = express();
-app.use(bodyParser.json());
-
-const server = app.listen(process.env.PORT, '0.0.0.0', () => {
-  const host = server.address().address;
-  const { port } = server.address();
-  // eslint-disable-next-line no-console
-  console.log('Web server started at http://%s:%s', host, port);
-});
-
 bot.client.on('ready', async () => {
   // eslint-disable-next-line no-console
   console.log(`Bot is ready ${bot.client.user.username}`);
   try {
-    await bot.client.generateInvite(['ADMINISTRATOR']);
     hive.startStream();
   } catch (e) {
     // eslint-disable-next-line no-console
-    console.log(e.stack);
+    console.log(e);
   }
 });
 
-bot.client.on('message', async (msg) => {
+bot.client.on('messageCreate', async (msg) => {
   try {
     // console.log(msg.author.bot);
     if (msg.author.bot) return;
 
-    if (msg.channel.type === 'dm') return;
+    if (msg.channel.type === 1) {
+      if (msg.content === 'ping') {
+        msg.reply('Pong!');
+      }
+    }
 
     if (msg.channel.name === 'post-promotion' || msg.channel.name === 'city-curation' || msg.channel.name === 'dragon-posts' || msg.channel.name === 'high-quality-posts' || msg.channel.name === 'photography-posts') {
       const msgLower = msg.content.toLowerCase();
@@ -58,10 +47,10 @@ bot.client.on('message', async (msg) => {
         const command = 'Please use the following commands to use my features.\n \n ' + '`' + '$random 405 and 670' + '`' + ' - Use this command to find a random number in #play-with-bots channel.';
 
         msg.channel.send({
-          embed: {
+          embeds: [{
             title: `Hi, I'm the Neox Bot version ${pkg.version}.`,
             description: command,
-          },
+          }],
         });
       }
 
@@ -83,6 +72,6 @@ bot.client.on('message', async (msg) => {
     return;
   } catch (e) {
     // eslint-disable-next-line no-console
-    console.log(e.stack);
+    console.log(e);
   }
 });
