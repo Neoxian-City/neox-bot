@@ -1,4 +1,4 @@
-const hive = require('./hive');
+const hiveStream = require('./hiveStream');
 const bot = require('./bot');
 const pkg = require('./package.json');
 
@@ -12,7 +12,7 @@ bot.client.on('ready', async () => {
   // eslint-disable-next-line no-console
   console.log(`Bot is ready ${bot.client.user.username}`);
   try {
-    hive.startStream();
+    hiveStream.init();
   } catch (e) {
     // eslint-disable-next-line no-console
     console.log(e);
@@ -38,7 +38,7 @@ bot.client.on('messageCreate', async (msg) => {
         msg.reply('Steemit links are forbidden in this City. Please use other links like Neoxian.city or SteemPeak. Your link has been deleted. Also, please read the rules of the city for more details.');
         return;
       }
-      hive.checkPosts(msg);
+      hiveStream.checkPosts(msg);
     }
 
     if (msg.channel.name === 'play-with-bots') {

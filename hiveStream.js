@@ -1,32 +1,97 @@
+/* eslint-disable camelcase */
+/* eslint-disable no-await-in-loop */
+const axios = require('axios');
 const dhive = require('@hiveio/dhive');
+const fs = require('fs-extra');
 const moment = require('moment');
+const { Queue } = require('./libs/Queue');
 const config = require('./config');
 const bot = require('./bot');
 
 const client = new dhive.Client(config.hiveRPCNodes);
 const key = dhive.PrivateKey.from(config.curationWif);
 
-let streamOn = false;
+const hiveNodes = new Queue();
+config.hiveRPCNodes.forEach((node) => hiveNodes.push(node));
+
+const getHiveNode = () => {
+  const node = hiveNodes.pop();
+  hiveNodes.push(node);
+
+  console.log('Using Hive node:', node); // eslint-disable-line no-console
+  // bot.errorMessage(`Using Hive node: ${node}`);
+  return node;
+};
+
+let hiveNode = '';
+
+const call = async (method, params, failed) => {
+  let failedAttempt = failed;
+  try {
+    let output = {};
+    const query = {
+      jsonrpc: '2.0',
+      method,
+      params,
+      id: 1,
+    };
+    const content = await axios.post(hiveNode, query);
+    if (content.data.result && content.status === 200) {
+      output = content.data.result;
+      return output;
+    }
+    // eslint-disable-next-line no-console
+    console.log(method, params, failed);
+    throw new Error();
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.log(`Call error block: \nFailed Attempt: ${failedAttempt}`, e);
+    hiveNode = getHiveNode();
+    failedAttempt += 1;
+    if (failedAttempt <= 5) {
+      return call(method, params, failedAttempt);
+    }
+    return e;
+  }
+};
+
+const ensureFile = async () => {
+  try {
+    await fs.ensureFile('./hiveState.json');
+    const conf = {};
+    const stat = fs.statSync('./hiveState.json');
+    if (stat.size === 0) {
+      const gp = await call('condenser_api.get_dynamic_global_properties', [], 0);
+      const latestBlock = gp.last_irreversible_block_num;
+      conf.lastHiveBlockParsed = latestBlock;
+      await fs.writeJSONSync('./hiveState.json', conf, { spaces: 4 });
+    }
+    return;
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.log(err);
+  }
+};
 
 const getGlobalProperties = async () => {
   let totalVestingShares = '';
   let totalVestingFundHive = '';
   try {
-    const result = await client.database.getDynamicGlobalProperties();
+    const result = await call('condenser_api.get_dynamic_global_properties', [], 0);
     totalVestingShares = result.total_vesting_shares;
     totalVestingFundHive = result.total_vesting_fund_hive;
   } catch (e) {
     // eslint-disable-next-line no-console
-    console.log(`Error in getGlobalProperties: \n ${e}`);
+    console.log('Error in getGlobalProperties: \n', e);
     bot.errorMessage(`Error in getGlobalProperties: \n ${e}`);
   }
-  return ({ totalVestingShares, totalVestingFundHive });
+  return { totalVestingShares, totalVestingFundHive };
 };
 
 const getHivePostDetails = async (postAuthor, postLink) => {
   let output = {};
   try {
-    const content = await client.database.call('get_content', [postAuthor, postLink]);
+    const content = await call('condenser_api.get_content', [postAuthor, postLink], 0);
     if (content) {
       if (content.json_metadata) {
         const obj = JSON.parse(content.json_metadata);
@@ -34,8 +99,7 @@ const getHivePostDetails = async (postAuthor, postLink) => {
         let { app } = obj;
         const benf = [];
         for (let i = 0; i < content.beneficiaries.length; i += 1) {
-          benf.push(`${content.beneficiaries[i].account}(${content.beneficiaries[i]
-            .weight / 100}%)`);
+          benf.push(`${content.beneficiaries[i].account}(${content.beneficiaries[i].weight / 100}%)`);
         }
         if (benf.length === 0) {
           benf.push('No beneficiaries added');
@@ -44,17 +108,24 @@ const getHivePostDetails = async (postAuthor, postLink) => {
           app = 'No app added';
         }
         output = {
-          created: content.created, lastUpdate: content.last_update, tags, app, beneficiaries: benf,
+          created: content.created,
+          lastUpdate: content.last_update,
+          tags,
+          app,
+          beneficiaries: benf,
+          pendingPayout: content.pending_payout_value,
         };
       } else {
         output = {
-          created: content.created, lastUpdate: content.last_update,
+          created: content.created,
+          lastUpdate: content.last_update,
+          pendingPayout: content.pending_payout_value,
         };
       }
     }
   } catch (e) {
     // eslint-disable-next-line no-console
-    console.log(`Error getting Hive Post Details: \n ${e} \n\n Author: ${postAuthor} \n Permlink: ${postLink}`);
+    console.log(`Error getting Hive Post Details: \n\n Author: ${postAuthor} \n Permlink: ${postLink} \n`, e);
     bot.errorMessage(`Error getting Hive Post Details: \n ${e} \n\n Author: ${postAuthor} \n Permlink: ${postLink}`);
   }
   return output;
@@ -188,69 +259,77 @@ const checkPosts = async (msg) => {
   }
 };
 
-const stream = async () => {
-  try {
-    streamOn = true;
-    // bot.errorMessage('Stream has started');
-    (async () => {
-      const opsStream = client.blockchain.getOperationsStream();
-      opsStream.on('data', async (result) => {
-        if (result) {
-          if (result.op[0] === 'comment' && !result.op[1].parent_author) {
-            setTimeout(async () => {
-              const data = await getHivePostDetails(result.op[1].author, result.op[1].permlink);
-              if (data.app && data.app === 'neoxiancity/0.1') {
-                if (data.created === data.lastUpdate) {
-                  bot.client.channels.cache.get(config.cityPostsChannel).send(`New Post from Neoxian City: \n https://${config.UI}/@${result.op[1].author}/${result.op[1].permlink}`);
-                  bot.client.channels.cache.get(config.cityPostsChannel).send({
-                    embeds: [{
-                      color: 2146335,
-                      fields: [
-                        {
-                          name: 'Date Created',
-                          value: `${moment.utc(data.created).format('MMMM Do YYYY, h:mm:ss a')}`,
-                        },
-                        {
-                          name: 'Tags',
-                          value: `${data.tags.join(', ')}`,
-                        },
-                        {
-                          name: 'Beneficiaries',
-                          value: `${data.beneficiaries.join(', ')}`,
-                        },
-                        {
-                          name: 'App',
-                          value: `${data.app}`,
-                        },
-                      ],
-                    }],
-                  });
-                }
-              }
-            }, 20000);
+const parseBlock = async (block) => {
+  for (let i = 0; i < block.length; i += 1) {
+    if (block[i]) {
+      if (block[i].op[0] === 'comment' && !block[i].op[1].parent_author) {
+        const data = await getHivePostDetails(block[i].op[1].author, block[i].op[1].permlink);
+        if (data.tags && data.tags.length > 0 && data.app && data.app === 'neoxiancity/0.1') {
+          if (data.tags.includes('neoxian') || data.tags.includes('hive-177682')) {
+            if (data.created === data.lastUpdate) {
+              bot.client.channels.cache.get(config.cityPostsChannel).send(`New Post from Neoxian City: \n https://${config.UI}/@${block[i].op[1].author}/${block[i].op[1].permlink}`);
+              bot.client.channels.cache.get(config.cityPostsChannel).send({
+                embeds: [{
+                  color: 2146335,
+                  fields: [
+                    {
+                      name: 'Date Created',
+                      value: `${moment.utc(data.created).format('MMMM Do YYYY, h:mm:ss a')}`,
+                    },
+                    {
+                      name: 'Tags',
+                      value: `${data.tags.join(', ')}`,
+                    },
+                    {
+                      name: 'Beneficiaries',
+                      value: `${data.beneficiaries.join(', ')}`,
+                    },
+                    {
+                      name: 'App',
+                      value: `${data.app}`,
+                    },
+                  ],
+                }],
+              });
+            }
           }
         }
-      });
-    })();
-  } catch (e) {
-    streamOn = false;
-    // eslint-disable-next-line no-console
-    console.log(e);
-    bot.errorMessage(`Error while streaming: \n ${e} \n\n Streaming will be restarted.`);
-    if (streamOn === false) {
-      stream();
+      }
     }
   }
 };
 
-const startStream = () => {
-  if (streamOn === false) {
-    stream();
+async function parseChain(blockNumber) {
+  try {
+    const blockRaw = await call('block_api.get_block', { block_num: blockNumber }, 0);
+    if (blockRaw.block && blockRaw.block.transactions !== null) {
+      if (blockRaw.block.transactions.length > 0) {
+        await parseBlock(blockRaw.block.transactions, blockRaw.block.transaction_ids);
+      }
+      const state = {};
+      state.lastHiveBlockParsed = blockNumber + 1;
+      fs.writeJSONSync('./hiveState.json', state, { spaces: 4 });
+      parseChain(blockNumber + 1);
+    } else {
+      setTimeout(() => parseChain(blockNumber), config.pollingTime);
+    }
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.log('Error in parseHiveChain', blockNumber, error);
+    hiveNode = getHiveNode();
+    // eslint-disable-next-line no-unused-vars
+    setTimeout(() => parseChain(blockNumber), config.pollingTime);
   }
+}
+
+const init = async () => {
+  hiveNode = await getHiveNode();
+  await ensureFile();
+  const conf = fs.readJSONSync('./hiveState.json');
+  await parseChain(conf.lastHiveBlockParsed);
 };
 
 module.exports = {
-
-  startStream, getHivePostDetails, checkPosts,
-
+  init,
+  checkPosts,
 };
