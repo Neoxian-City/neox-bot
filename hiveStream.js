@@ -170,8 +170,8 @@ const checkPosts = async (msg) => {
           // express as a duration
           const diffDuration = moment.duration(diff);
 
-          if (Math.round(diffDuration.asSeconds()) >= 86400) {
-            msg.reply('The post is greater than 24 hours old. The post link has been deleted. Please post only links that are less than 24 hours old.');
+          if (Math.round(diffDuration.asSeconds()) >= 86400 * 2) {
+            msg.reply('The post is greater than 48 hours old. The post link has been deleted. Please post only links that are less than 48 hours old.');
             msg.delete();
             return;
           }
